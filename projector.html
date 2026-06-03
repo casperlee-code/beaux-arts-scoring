@@ -252,7 +252,7 @@
       }
       
       // Display current synchronization engine mode
-      document.getElementById('sync-mode-display').innerText = syncManager.useFirebase ? "Live Google Firestore" : "Simulated LocalSync (Offline)";
+      document.getElementById('sync-mode-display').innerText = syncManager.useFirebase ? "雲端連線模式 (Firebase)" : "單機模擬模式 (LocalSync)";
     });
 
     // --- Switch Active Views dynamically ---
@@ -369,7 +369,9 @@
           // Determine status flags
           const hasVoted = scoreObj.details && scoreObj.details.submissions[voterId] !== undefined;
           
-          const isConnected = connectedVoters[voterId] && connectedVoters[voterId].connected;
+          const isConnected = connectedVoters[voterId] && 
+                              connectedVoters[voterId].connected && 
+                              (Date.now() - connectedVoters[voterId].last_active < 30000);
 
           const container = document.createElement('div');
           container.className = 'bulb-container';

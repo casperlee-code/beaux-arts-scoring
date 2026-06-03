@@ -260,6 +260,13 @@
       }
     });
 
+    // 定期 10 秒發送連線心跳 (Presence Heartbeat)
+    setInterval(() => {
+      if (currentUser) {
+        syncManager.updateVoterConnection(currentUser.id, true);
+      }
+    }, 10000);
+
     // --- PIN verification login handler ---
     const pinInput = document.getElementById('pin-input');
     const submitBtn = document.getElementById('login-submit-btn');
@@ -324,13 +331,17 @@
         shield.style.display = '';
         if (dot) {
           dot.className = 'conn-dot offline';
-          text.innerText = '斷線';
+          text.innerText = '連線中斷';
         }
       } else {
         shield.style.display = 'none';
         if (dot) {
           dot.className = 'conn-dot online';
-          text.innerText = '已連線';
+          if (syncManager.useFirebase) {
+            text.innerText = '雲端連線 (Firebase)';
+          } else {
+            text.innerText = '單機模擬 (LocalSync)';
+          }
         }
       }
     }

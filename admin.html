@@ -108,6 +108,11 @@
                 <button class="btn-outline-gold" onclick="shiftActiveTeam(1)">下一組 <i class="fa-solid fa-arrow-right"></i></button>
                 <button class="btn-gold" id="btn-force-reload-round" onclick="resetRoundScore()"><i class="fa-solid fa-rotate-left"></i> 重置本回合</button>
               </div>
+              <div class="team-control-row" style="margin-top: 12px; justify-content: flex-end;">
+                <button class="btn-gold" style="background: var(--color-danger); border-color: var(--color-danger); font-size: 0.9rem;" onclick="triggerResetEntireShow()">
+                  <i class="fa-solid fa-rotate"></i> 一鍵重置整場比賽 (Reset Entire Show)
+                </button>
+              </div>
               <p style="font-size: 0.85rem; color: var(--color-gray-light); margin-top: 15px; line-height: 1.5;">
                 <i class="fa-solid fa-circle-info"></i> <strong>跳組與挑回機制</strong>：若第 5 組缺席，可在此直接下拉選取「第 6 組」，系統將自動推進並清除舊評分。在走秀後半場任意時刻，您可在此「下拉挑回第 5 組」重新進行評分。
               </p>
@@ -390,7 +395,7 @@
       }
 
       // Display active sync engine mode indicator
-      const text = syncManager.useFirebase ? "Live Google Firestore" : "Simulated LocalSync (Offline)";
+      const text = syncManager.useFirebase ? "雲端連線模式 (Firebase Firestore)" : "單機模擬模式 (LocalSync 離線)";
       document.getElementById('db-mode-indicator').innerText = text;
     }
 
@@ -492,7 +497,9 @@
         
         const hasVoted = scoreObj.details && scoreObj.details.submissions[voterId] !== undefined;
         
-        const isConnected = connectedVoters[voterId] && connectedVoters[voterId].connected;
+        const isConnected = connectedVoters[voterId] && 
+                            connectedVoters[voterId].connected && 
+                            (Date.now() - connectedVoters[voterId].last_active < 30000);
 
         const card = document.createElement('div');
         card.className = 'voter-status-card';
@@ -647,6 +654,13 @@
     function resetRoundScore() {
       if (confirm("您確定要重置本回合的所有評分嗎？這將會清空所有評審目前為此組提交的分數，且無法復原。")) {
         syncManager.clearRoundVotes();
+      }
+    }
+
+    function triggerResetEntireShow() {
+      if (confirm("⚠️ 極重要警告：您確定要「一鍵重置整場比賽」嗎？\n這將會：\n1. 將所有 24 組參賽隊伍的歷史得分率全部清空歸零。\n2. 清空資料庫中所有暫存的投票紀錄。\n3. 自動將登場組別跳回【第 01 組】。\n4. 自動將全域舞台畫面切回【待命狀態】。\n\n（手動編輯過的經典建築名稱將會完整保留，不會被刪除！）")) {
+        syncManager.resetEntireShow();
+        alert("整場比賽已成功重置！");
       }
     }
 

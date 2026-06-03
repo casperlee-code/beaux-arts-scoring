@@ -1,6 +1,18 @@
 /* ==========================================================================
-   2026 BEAUX ARTS BALL - SCORING CORE ENGINE (v2.1)
+   2026 BEAUX ARTS BALL - SCORING CORE ENGINE (v2.2)
    ========================================================================== */
+
+// --- Firebase Cloud Connection Configuration ---
+// 如果要啟用跨裝置的手機/電腦即時連動，請將下方 ENABLE_FIREBASE 設為 true，並填入您的 Firebase 配置。
+const ENABLE_FIREBASE = false;
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
 // --- Global Constants & Token/PIN mappings ---
 const VOTER_TOKENS = {
@@ -76,12 +88,18 @@ class DualModeSynchronizer {
     this.listeners = [];
     this.offlineCallbacks = [];
     
-    // Load config if exists in LocalStorage
-    const savedConfig = localStorage.getItem('firebase_config');
-    const savedUseFirebase = localStorage.getItem('use_firebase') === 'true';
-    if (savedConfig) {
-      this.firebaseConfig = JSON.parse(savedConfig);
-      this.useFirebase = savedUseFirebase;
+    // Check if hardcoded Firebase config is active and valid
+    if (ENABLE_FIREBASE && FIREBASE_CONFIG && FIREBASE_CONFIG.projectId && FIREBASE_CONFIG.projectId !== "YOUR_PROJECT_ID") {
+      this.firebaseConfig = FIREBASE_CONFIG;
+      this.useFirebase = true;
+    } else {
+      // Otherwise fallback to LocalStorage (set via Admin Panel)
+      const savedConfig = localStorage.getItem('firebase_config');
+      const savedUseFirebase = localStorage.getItem('use_firebase') === 'true';
+      if (savedConfig) {
+        this.firebaseConfig = JSON.parse(savedConfig);
+        this.useFirebase = savedUseFirebase;
+      }
     }
 
     // Initialize LocalSync variables
@@ -397,6 +415,29 @@ class DualModeSynchronizer {
     } else {
       this.saveLocalAndBroadcast('votes', []);
     }
+  }
+
+  resetEntireShow() {
+    // 1. Reset all roster scores to 0.00
+    const roster = this.getRoster();
+    roster.forEach(team => {
+      team.total_percentage = 0.00;
+      if (this.useFirebase && this.db) {
+        this.db.collection('roster').doc(team.id).update({ total_percentage: 0.00 });
+      }
+    });
+    if (!this.useFirebase || !this.db) {
+      this.saveLocalAndBroadcast('roster', roster);
+    }
+
+    // 2. Clear all current round votes
+    this.clearRoundVotes();
+
+    // 3. Reset global state to team 1, standby view
+    this.updateGlobalState({
+      view: 'standby',
+      current_team_id: 1
+    });
   }
 
   deleteSingleVote(voteDocId) {
