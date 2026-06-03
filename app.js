@@ -4,14 +4,15 @@
 
 // --- Firebase Cloud Connection Configuration ---
 // 如果要啟用跨裝置的手機/電腦即時連動，請將下方 ENABLE_FIREBASE 設為 true，並填入您的 Firebase 配置。
-const ENABLE_FIREBASE = false;
+const ENABLE_FIREBASE = true;
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDHaM3crOeX1drGn9ZermH9f-JJre-fVDA",
+  authDomain: "show-bfe15.firebaseapp.com",
+  projectId: "show-bfe15",
+  storageBucket: "show-bfe15.firebasestorage.app",
+  messagingSenderId: "98657744100",
+  appId: "1:98657744100:web:a72f2220e544a2fcfe28f1",
+  measurementId: "G-H53ZWWHJ08"
 };
 
 // --- Global Constants & Token/PIN mappings ---
