@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 FCU Beaux Arts Ball - Architecture Costume Show Projector</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Consolidated Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="projector-body art-deco-bg">
+
+  <!-- Fixed resolution layout scaled by JavaScript to fit window -->
+  <div class="projector-viewport" id="projector-viewport">
+    
+    <!-- Outer Decorative Border Frame -->
+    <div class="deco-corners"></div>
+    
+    <!-- 1. HEADER (Persistent top bar) -->
+    <header class="proj-header">
+      <div class="proj-header-logo text-gold">
+        <i class="fa-solid fa-hotel"></i> BEAUX-ARTS BALL
+      </div>
+      <div class="proj-header-title text-gradient-gold">
+        2026 FCU Beaux Arts Ball - Architecture Costume Show
+      </div>
+      <div class="proj-header-time" id="live-timer">
+        15:30:00
+      </div>
+    </header>
+
+    <!-- 2. MAIN WORKSPACE (State dynamic render) -->
+    <main class="proj-main-content">
+      
+      <!-- 2.1 STANDBY STATE -->
+      <div class="state-standby" id="view-standby" style="display: none;">
+        <div class="standby-logo text-gold">
+          <i class="fa-solid fa-hotel"></i>
+        </div>
+        <h2 class="standby-title text-gradient-gold">THE BEAUX-ARTS BALL 2026</h2>
+        <p class="standby-subtitle text-gold">FCU ARCHITECTURAL THOUGHTS AND PRACTICES</p>
+      </div>
+
+      <!-- 2.2 PREPARATION STATE -->
+      <div class="state-prep" id="view-prep" style="display: none;">
+        <div class="prep-container">
+          <div class="team-badge-circle" id="prep-team-id-badge">01</div>
+          <h2 class="prep-archi-title text-gradient-gold" id="prep-architecture-name">帕德嫩神廟 (Parthenon)</h2>
+          <p class="prep-team-name text-gold" id="prep-team-name">第 01 組</p>
+          <p class="prep-sub-title text-gold" style="font-size: 1.5rem; letter-spacing: 2px; font-weight: 500; font-family: var(--font-display); margin-top: 15px;">THE BEAUX-ARTS BALL 2026</p>
+          <p class="prep-sub-title2 text-gold" style="font-size: 1.1rem; letter-spacing: 1px; font-weight: 400; font-family: var(--font-display); margin-top: 5px; opacity: 0.8;">FCU ARCHITECTURAL THOUGHTS AND PRACTICES</p>
+        </div>
+      </div>
+
+      <!-- 2.3 SCORING STATE -->
+      <div class="state-scoring" id="view-scoring" style="display: none;">
+        
+        <!-- Left panel: Current Team Info -->
+        <div class="scoring-left-panel">
+          <span class="scoring-active-badge" id="scoring-team-badge">第 01 組</span>
+          <h2 class="scoring-archi-title text-gradient-gold" id="scoring-architecture-name">巴塞隆納聖家堂</h2>
+          <p class="scoring-team-name text-gold" style="font-family: var(--font-display); font-size:1.4rem; letter-spacing:2px; margin-top:20px;">THE BEAUX-ARTS BALL 2026</p>
+          <p class="scoring-team-subtitle text-gold" style="font-family: var(--font-display); font-size:1.1rem; letter-spacing:1px; margin-top:5px; opacity:0.8;">FCU ARCHITECTURAL THOUGHTS AND PRACTICES</p>
+        </div>
+
+        <!-- Right panel: Voting Bulb Connection Panel -->
+        <div class="scoring-right-panel">
+          
+          <!-- Voting progress metrics -->
+          <div class="voting-progress-box">
+            <div class="voting-progress-header">
+              <span class="text-gold"><i class="fa-solid fa-square-poll-vertical"></i> 現場評分收集進度</span>
+              <span id="voting-progress-text" class="text-gold">0 / 29 (0%)</span>
+            </div>
+            <div class="voting-progress-bar-bg">
+              <div class="voting-progress-bar-fill" id="voting-progress-bar"></div>
+            </div>
+          </div>
+
+          <!-- Connecting Bulbs Grid -->
+          <div class="voting-bulbs-grid" id="voting-bulbs-grid">
+            <!-- 29 virtual bulbs injected dynamically -->
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 2.4 SETTLEMENT STATE (2-Phase Reveal Panel) -->
+      <div class="state-settlement" id="view-settlement" style="display: none;">
+        
+        <!-- Giant popup card for score reveal (Phase 1) -->
+        <div class="settlement-reveal-card" id="reveal-card">
+          <div class="deco-corners"></div>
+          <p class="reveal-subtitle" id="reveal-team-meta">第 05 組</p>
+          <h2 class="reveal-title text-gradient-gold" id="reveal-architecture-name">佛羅倫斯大教堂</h2>
+          <div class="reveal-score-circle">
+            <span class="reveal-score-num" id="reveal-score-val">94.50</span>
+            <span class="reveal-score-label">最終得分率 (%)</span>
+          </div>
+          <p class="text-gold" style="font-family: var(--font-display); font-size:1.1rem; letter-spacing:1px; margin-top:10px;">THE BEAUX-ARTS BALL 2026</p>
+          <p class="text-gold" style="font-family: var(--font-display); font-size:0.9rem; letter-spacing:1px; margin-top:5px; opacity:0.8;">FCU ARCHITECTURAL THOUGHTS AND PRACTICES</p>
+        </div>
+
+        <!-- Leaderboard (Phase 2) -->
+        <div class="settlement-leaderboard-container" id="leaderboard-container">
+          <div class="leaderboard-panel">
+            <h3 class="leaderboard-title text-gradient-gold">
+              <i class="fa-solid fa-list-ol"></i> 歷史走秀排行榜 (實時排序)
+            </h3>
+            <div class="leaderboard-list" id="leaderboard-list">
+              <!-- Bar chart list item rows injected dynamically -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 2.5 PODIUM STATE (3D Kahoot-style Stage) -->
+      <div class="state-podium" id="view-podium" style="display: none;">
+        
+        <!-- Real podium columns -->
+        <div class="podium-container" id="podium-stage-container">
+          
+          <!-- 2nd Place Column -->
+          <div class="podium-step podium-step-2" id="podium-rank-2">
+            <div class="podium-header">
+              <div class="podium-archi" id="podium-2-archi">羅馬競技場</div>
+              <div class="podium-percentage" id="podium-2-score">92.40%</div>
+            </div>
+            <div class="podium-card">
+              <div class="deco-corners"></div>
+              <span class="podium-num">2</span>
+              <span class="podium-label">Second</span>
+            </div>
+          </div>
+
+          <!-- 1st Place Column -->
+          <div class="podium-step podium-step-1" id="podium-rank-1">
+            
+            <!-- Standard Header (when single winner) -->
+            <div class="podium-header" id="podium-1-standard-header">
+              <div class="podium-archi" id="podium-1-archi">巴塞隆納聖家堂</div>
+              <div class="podium-percentage" id="podium-1-score">98.20%</div>
+            </div>
+            
+            <!-- Adaptive Horizontal Header for Tie Winners -->
+            <div class="podium-header" id="podium-1-tie-header" style="display: none; width: 100%; max-width: 600px;">
+              <div class="podium-tie-box" id="podium-tie-box">
+                <!-- Tied entries filled dynamically -->
+              </div>
+              <div class="podium-percentage" id="podium-tie-score" style="margin-top: 15px; color:#ffd700;">98.20%</div>
+            </div>
+
+            <div class="podium-card">
+              <div class="deco-corners"></div>
+              <span class="podium-num">1</span>
+              <span class="podium-label">Winner</span>
+            </div>
+          </div>
+
+          <!-- 3rd Place Column -->
+          <div class="podium-step podium-step-3" id="podium-rank-3">
+            <div class="podium-header">
+              <div class="podium-archi" id="podium-3-archi">巴黎艾菲爾鐵塔</div>
+              <div class="podium-percentage" id="podium-3-score">89.50%</div>
+            </div>
+            <div class="podium-card">
+              <div class="deco-corners"></div>
+              <span class="podium-num">3</span>
+              <span class="podium-label">Third</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- 3. FOOTER (Persistent bottom bar) -->
+    <footer class="proj-footer">
+      <div>FCU ARCHITECTURAL THOUGHTS AND PRACTICES</div>
+      <div>系統連線狀態: <span class="text-gold" id="sync-mode-display">Simulated LocalSync</span></div>
+      <div>THE BEAUX-ARTS BALL 2026</div>
+    </footer>
+
+  </div>
+
+  <!-- Realtime App Logic Scripts -->
+  <script src="app.js"></script>
+  <script>
+    // --- Scale Viewport to Fit Screen Exactly (Responsive 1920x1080 scaling) ---
+    function resizeProjector() {
+      const viewport = document.getElementById('projector-viewport');
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      
+      const scaleX = w / 1920;
+      const scaleY = h / 1080;
+      
+      // Use the smaller scaling factor to preserve ratio
+      const scale = Math.min(scaleX, scaleY);
+      
+      viewport.style.transform = `scale(${scale})`;
+      
+      // Center the viewport inside the body
+      const left = (w - 1920 * scale) / 2;
+      const top = (h - 1080 * scale) / 2;
+      
+      viewport.style.position = 'absolute';
+      viewport.style.left = `${left}px`;
+      viewport.style.top = `${top}px`;
+    }
+    
+    window.addEventListener('resize', resizeProjector);
+    window.addEventListener('load', resizeProjector);
+    resizeProjector();
+
+    // --- Time clock ticking ---
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('live-timer').innerText = now.toTimeString().split(' ')[0];
+    }, 1000);
+
+    // --- State Cache Variables ---
+    let globalState = {};
+    let roster = [];
+    let votes = [];
+    let connectedVoters = {};
+
+    // --- Subscribe to App Synchronizer ---
+    syncManager.subscribe((type, data) => {
+      if (type === 'global_state') {
+        globalState = data;
+        renderActiveView();
+      } else if (type === 'roster') {
+        roster = data;
+        updateActiveTeamDisplay();
+        updateLeaderboardDisplay();
+        updatePodiumDisplay();
+      } else if (type === 'votes') {
+        votes = data;
+        updateVotesDisplay();
+        updateLeaderboardDisplay();
+      } else if (type === 'connected_voters') {
+        connectedVoters = data;
+        updateVotesDisplay(); // Re-render bulbs to show active connectivity status
+      }
+      
+      // Display current synchronization engine mode
+      document.getElementById('sync-mode-display').innerText = syncManager.useFirebase ? "Live Google Firestore" : "Simulated LocalSync (Offline)";
+    });
+
+    // --- Switch Active Views dynamically ---
+    function renderActiveView() {
+      const views = ['standby', 'prep', 'scoring', 'settlement', 'podium'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.style.display = (globalState.view === v) ? '' : 'none';
+      });
+
+      // Layout resets based on state transitions
+      const revealCard = document.getElementById('reveal-card');
+      const leaderboard = document.getElementById('leaderboard-container');
+      
+      if (globalState.view === 'settlement') {
+        // Reset card zoom and slide out leaderboard
+        revealCard.classList.remove('shrink');
+        leaderboard.classList.remove('show');
+        
+        // Trigger Phase 2 (shrink card, grow leaderboard list) after 2000ms
+        setTimeout(() => {
+          if (globalState.view === 'settlement') {
+            revealCard.classList.add('shrink');
+            leaderboard.classList.add('show');
+            // Trigger leaderboard bar growth animation
+            setTimeout(() => {
+              animateLeaderboardBars();
+            }, 100);
+          }
+        }, 2000);
+      } else if (globalState.view === 'podium') {
+        // Reset podium reveals
+        document.getElementById('podium-rank-3').classList.remove('reveal');
+        document.getElementById('podium-rank-2').classList.remove('reveal');
+        document.getElementById('podium-rank-1').classList.remove('reveal');
+      }
+
+      // Update current views text
+      updateActiveTeamDisplay();
+      updateVotesDisplay();
+    }
+
+    // --- Update Team Info across layouts ---
+    function updateActiveTeamDisplay() {
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const activeTeam = roster.find(t => t.teamId === currentTeamId);
+      
+      if (!activeTeam) return;
+
+      // 1. Update prep screen
+      const prepBadge = document.getElementById('prep-team-id-badge');
+      if (prepBadge) prepBadge.innerText = String(activeTeam.teamId).padStart(2, '0');
+      
+      const prepArchi = document.getElementById('prep-architecture-name');
+      if (prepArchi) prepArchi.innerText = activeTeam.architecture;
+      
+      const prepTeamName = document.getElementById('prep-team-name');
+      if (prepTeamName) prepTeamName.innerText = `第 ${String(activeTeam.teamId).padStart(2, '0')} 組`;
+
+      // 2. Update scoring screen
+      const scoringArchi = document.getElementById('scoring-architecture-name');
+      if (scoringArchi) scoringArchi.innerText = activeTeam.architecture;
+      
+      const scoringTeamBadge = document.getElementById('scoring-team-badge');
+      if (scoringTeamBadge) scoringTeamBadge.innerText = `第 ${String(activeTeam.teamId).padStart(2, '0')} 組`;
+
+      // 3. Update settlement screen score display details
+      const revealArchi = document.getElementById('reveal-architecture-name');
+      if (revealArchi) revealArchi.innerText = activeTeam.architecture;
+      
+      const revealTeamMeta = document.getElementById('reveal-team-meta');
+      if (revealTeamMeta) revealTeamMeta.innerText = `第 ${String(activeTeam.teamId).padStart(2, '0')} 組`;
+      
+      const revealScoreVal = document.getElementById('reveal-score-val');
+      if (revealScoreVal) revealScoreVal.innerText = activeTeam.total_percentage ? activeTeam.total_percentage.toFixed(2) : "0.00";
+    }
+
+    // --- Update Voting bulbs and connectivity lights progress ---
+    function updateVotesDisplay() {
+      if (globalState.view !== 'scoring') return;
+
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      
+      // Calculate scores to fetch voter breakdown counts
+      const scoreObj = calculateTeamScore(currentTeamId, roster, votes, globalState, connectedVoters);
+      const votersCount = scoreObj.details ? Object.keys(scoreObj.details.submissions).length : 0;
+      const denominator = scoreObj.details ? scoreObj.details.voters_denominator : 28;
+
+      // Update text details
+      const progressText = document.getElementById('voting-progress-text');
+      const progressPercent = Math.min(100, Math.round((votersCount / denominator) * 100));
+      if (progressText) progressText.innerText = `${votersCount} / ${denominator} (${progressPercent}%)`;
+      
+      const progressBar = document.getElementById('voting-progress-bar');
+      if (progressBar) progressBar.style.width = `${progressPercent}%`;
+
+      // Render 29 voter connection bulbs
+      const bulbsGrid = document.getElementById('voting-bulbs-grid');
+      if (bulbsGrid) {
+        bulbsGrid.innerHTML = '';
+        
+        // Sort tokens: 5 Judges first, then 24 teams
+        const sortedTokens = Object.entries(VOTER_TOKENS).sort((a, b) => {
+          if (a[1].type === b[1].type) return a[1].id.localeCompare(b[1].id);
+          return a[1].type === 'professional' ? -1 : 1;
+        });
+
+        sortedTokens.forEach(([pin, details]) => {
+          const voterId = details.id;
+          
+          // Peer-lockout: performing team itself is exempt from voting
+          const isPeerExempt = (details.type === 'peer' && details.teamId === currentTeamId);
+          
+          // Determine status flags
+          const hasVoted = scoreObj.details && scoreObj.details.submissions[voterId] !== undefined;
+          
+          const isConnected = connectedVoters[voterId] && connectedVoters[voterId].connected;
+
+          const container = document.createElement('div');
+          container.className = 'bulb-container';
+
+          const bulb = document.createElement('div');
+          bulb.className = 'bulb';
+          
+          // Bulb states logic
+          if (isPeerExempt) {
+            bulb.style.background = 'repeating-linear-gradient(45deg, #1e2022, #1e2022 4px, var(--color-gold-deep) 4px, var(--color-gold-deep) 8px)';
+            bulb.title = "同儕互評迴避，免評分";
+          } else if (hasVoted) {
+            bulb.classList.add('active-vote');
+            bulb.title = "已提交評分";
+          } else if (!isConnected) {
+            bulb.classList.add('offline');
+            bulb.title = "未連線 / 離線";
+          } else {
+            bulb.title = "連線中，尚未評分";
+          }
+
+          const label = document.createElement('span');
+          label.className = 'bulb-label';
+          label.innerText = details.type === 'professional' ? `J${voterId.split('_')[1]}` : `T${String(details.teamId).padStart(2, '0')}`;
+
+          container.appendChild(bulb);
+          container.appendChild(label);
+          bulbsGrid.appendChild(container);
+        });
+      }
+    }
+
+    // --- Update Dynamic Leaderboard (Horizontal grows) ---
+    function updateLeaderboardDisplay() {
+      const listContainer = document.getElementById('leaderboard-list');
+      if (!listContainer) return;
+
+      // Filter and sort completed performances
+      const completed = roster
+        .filter(t => t.total_percentage > 0)
+        .sort((a, b) => b.total_percentage - a.total_percentage);
+
+      listContainer.innerHTML = '';
+      
+      if (completed.length === 0) {
+        listContainer.innerHTML = `<p style="text-align: center; color: var(--color-gray-muted); margin-top: 50px; font-size: 1.2rem;">尚未有已結算的走秀隊伍</p>`;
+        return;
+      }
+
+      completed.forEach((team, idx) => {
+        const rank = idx + 1;
+        
+        const row = document.createElement('div');
+        row.className = 'leaderboard-item';
+        
+        // Rank highlight classes
+        let rankClass = 'rank-badge';
+        if (rank <= 3) rankClass += ` rank-${rank}`;
+
+        row.innerHTML = `
+          <div class="${rankClass}">${rank}</div>
+          <div class="archi-name text-gold">${team.architecture}</div>
+          <div class="bar-wrapper">
+            <div class="bar-fill" data-width="${team.total_percentage}%" style="width: 0%;"></div>
+          </div>
+          <div class="percentage-text">${team.total_percentage.toFixed(2)}%</div>
+        `;
+
+        listContainer.appendChild(row);
+      });
+    }
+
+    // Animate growing widths of bar chart
+    function animateLeaderboardBars() {
+      const fills = document.querySelectorAll('.bar-fill');
+      fills.forEach(fill => {
+        const targetWidth = fill.getAttribute('data-width');
+        fill.style.width = targetWidth;
+      });
+    }
+
+    // --- Update Podium visuals ---
+    function updatePodiumDisplay() {
+      const podium = resolvePodiumPlacements(roster);
+
+      // Render 3rd rank
+      const r3 = podium.third[0];
+      const step3 = document.getElementById('podium-rank-3');
+      if (r3) {
+        document.getElementById('podium-3-archi').innerText = r3.architecture;
+        document.getElementById('podium-3-score').innerText = `${r3.total_percentage.toFixed(2)}%`;
+        step3.style.visibility = 'visible';
+      } else {
+        step3.style.visibility = 'hidden';
+      }
+
+      // Render 2nd rank
+      const r2 = podium.second[0];
+      const step2 = document.getElementById('podium-rank-2');
+      if (r2) {
+        document.getElementById('podium-2-archi').innerText = r2.architecture;
+        document.getElementById('podium-2-score').innerText = `${r2.total_percentage.toFixed(2)}%`;
+        step2.style.visibility = 'visible';
+      } else {
+        step2.style.visibility = 'hidden';
+      }
+
+      // Render 1st rank with duplicate ties check
+      const r1List = podium.first;
+      const step1 = document.getElementById('podium-rank-1');
+      
+      if (r1List && r1List.length > 0) {
+        const standardHeader = document.getElementById('podium-1-standard-header');
+        const tieHeader = document.getElementById('podium-1-tie-header');
+
+        if (r1List.length === 1) {
+          // Standard single winner
+          step1.classList.remove('tie');
+          standardHeader.style.display = '';
+          tieHeader.style.display = 'none';
+
+          document.getElementById('podium-1-archi').innerText = r1List[0].architecture;
+          document.getElementById('podium-1-score').innerText = `${r1List[0].total_percentage.toFixed(2)}%`;
+        } else {
+          // Tie multiple winners
+          step1.classList.add('tie');
+          standardHeader.style.display = 'none';
+          tieHeader.style.display = 'flex';
+
+          const tieBox = document.getElementById('podium-tie-box');
+          tieBox.innerHTML = '';
+          
+          r1List.forEach(t => {
+            const item = document.createElement('div');
+            item.className = 'podium-tie-item';
+            item.innerHTML = `
+              <div class="podium-archi" style="font-size:1.8rem;">${t.architecture}</div>
+            `;
+            tieBox.appendChild(item);
+          });
+          
+          document.getElementById('podium-tie-score').innerText = `${r1List[0].total_percentage.toFixed(2)}%`;
+        }
+        step1.style.visibility = 'visible';
+      } else {
+        step1.style.visibility = 'hidden';
+      }
+    }
+
+    // --- Dynamic messaging from Admin to trigger step-by-step podium reveals ---
+    const channel = new BroadcastChannel('beaux_arts_sync');
+    channel.onmessage = (event) => {
+      // LocalSync fallback broadcast handler
+      if (event.data.type === 'reveal_podium_step') {
+        const rank = event.data.rank;
+        const el = document.getElementById(`podium-rank-${rank}`);
+        if (el) el.classList.add('reveal');
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="東京建築美學旅行指南 - 探索代代木競技場、微熱山丘、普拉達青山、東京國際論壇等東京前衛與古典的建築地標。配合互動地圖、手繪風格時空軸與三大主題推薦路線。">
+  <title>間與形：東京建築美學旅行指南 | Tokyo Architecture Travel Guide</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet.js Map Library -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Floating Sakura Petals Layer -->
+  <div class="sakura-decor-container" id="sakura-container"></div>
+
+  <!-- NAVIGATION NAVBAR -->
+  <header class="navbar-container">
+    <div class="container navbar">
+      <a href="#" class="logo" id="logo-btn">
+        <div class="logo-icon">
+          <i class="fa-solid fa-seedling"></i>
+        </div>
+        <div class="logo-text">
+          <span class="logo-title">間 &amp; 形</span>
+          <span class="logo-subtitle">TOKYO ARCHITECTURE</span>
+        </div>
+      </a>
+      
+      <nav aria-label="主選單">
+        <ul class="nav-links">
+          <li><a href="#explorer" class="nav-link active" id="nav-explore">建築探索</a></li>
+          <li><a href="#timeline" class="nav-link" id="nav-history">歷史 epochs</a></li>
+          <li><a href="#itineraries" class="nav-link" id="nav-itinerary">推薦路線</a></li>
+          <li><a href="#tools" class="nav-link" id="nav-guide">攝影與指南</a></li>
+        </ul>
+      </nav>
+      
+      <div class="nav-actions">
+        <button class="theme-btn" id="theme-toggle-btn" title="切換和紙/墨夜主題">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="hero-tag"><i class="fa-solid fa-kaaba"></i> 侘寂美學與前衛工藝</span>
+          <h1 class="hero-title">
+            在東京的空間裡，<br>
+            看見<span>時間的形狀</span>。
+          </h1>
+          <p class="hero-description">
+            東京，是一座新陳代謝的巨型藝術品。從明治神宮的和風質樸，到丹下健三的懸索結構，再到隈研吾的木構重疊，每一棟結構都是時間在城市留下的墨跡。
+          </p>
+          
+          <!-- Search interface -->
+          <div class="hero-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="landmark-search-input" class="hero-search-input" placeholder="搜尋地標、建築師或風格... (例如: 隈研吾)">
+            <button class="hero-search-btn" id="search-action-btn">尋找</button>
+          </div>
+          
+          <div class="hero-quick-tags">
+            <span>快速搜尋：</span>
+            <span class="hero-quick-tag" data-tag="隈研吾">隈研吾</span>
+            <span class="hero-quick-tag" data-tag="丹下健三">丹下健三</span>
+            <span class="hero-quick-tag" data-tag="新陳代謝派">新陳代謝派</span>
+            <span class="hero-quick-tag" data-tag="表參道">表參道</span>
+          </div>
+        </div>
+        
+        <div class="hero-visual">
+          <div class="hero-decor-circle"></div>
+          <div class="hero-decor-rect"></div>
+          <div class="visual-main">
+            <!-- Default stunning architecture placeholder photo: Tokyo International Forum -->
+            <img src="https://images.unsplash.com/photo-1542051841857-5f90071e7989?q=80&w=1000&auto=format&fit=crop" alt="Tokyo Architecture Landmark View" id="hero-showcase-img">
+            <div class="visual-badge">
+              <p class="title" id="hero-showcase-title">東京國際論壇</p>
+              <p class="subtitle" id="hero-showcase-meta">Rafael Viñoly, 1996</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-wave-decor"></div>
+    </section>
+
+    <!-- ARCHITECTURE EXPLORER SECTION (Live Map + Filter List) -->
+    <section class="explorer-section" id="explorer">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <span class="section-subtitle">LANDMARK DISCOVERY</span>
+          <h2 class="section-title">建築地標探索</h2>
+          <div class="section-title-divider">
+            <span></span>
+            <i class="fa-solid fa-compass"></i>
+            <span></span>
+          </div>
+        </div>
+        
+        <!-- Interactive styles filters -->
+        <div class="filter-tabs" id="filter-tabs-container">
+          <button class="filter-tab active" data-style="all">
+            <i class="fa-solid fa-list-ul"></i> 全部地標
+          </button>
+          <button class="filter-tab" data-style="traditional">
+            <i class="fa-solid fa-torii-gate"></i> 傳統古典 / 木構
+          </button>
+          <button class="filter-tab" data-style="modernist">
+            <i class="fa-solid fa-cubes"></i> 戰後現代 / 粗獷主義
+          </button>
+          <button class="filter-tab" data-style="contemporary">
+            <i class="fa-solid fa-city"></i> 當代前衛 / 幾何玻璃
+          </button>
+          <button class="filter-tab" data-style="organic">
+            <i class="fa-solid fa-tree"></i> 有機自然 / 仿生學
+          </button>
+        </div>
+        
+        <!-- Main Explorer split screen: Map left, list right -->
+        <div class="explorer-split-grid">
+          <div class="map-outer-wrapper">
+            <div class="map-container-inner" id="leaflet-map-element"></div>
+          </div>
+          
+          <div class="cards-scroll-container" id="cards-scroll-list">
+            <!-- Landmark Cards will be generated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIDE INSIGHT DRAWER (Modal overlay) -->
+    <div class="drawer-overlay" id="detail-drawer-overlay"></div>
+    <aside class="drawer-panel" id="detail-drawer-panel" aria-label="建築詳細資訊面版">
+      <div class="drawer-header">
+        <div class="drawer-header-titles">
+          <span class="drawer-title-jp" id="drawer-title-jp">東京カテドラル聖マリア大聖堂</span>
+          <h3 class="drawer-title-en" id="drawer-title-en">東京聖瑪利亞大教堂</h3>
+        </div>
+        <button class="drawer-close-btn" id="drawer-close-btn" title="關閉視窗">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      
+      <div class="drawer-content">
+        <div class="drawer-img-container">
+          <img src="https://images.unsplash.com/photo-1540959733332-eab4deceeaf7?q=80&w=1000&auto=format&fit=crop" alt="Landmark Detail Photo" id="drawer-photo">
+        </div>
+        
+        <div class="drawer-info-grid">
+          <div class="info-item">
+            <span class="label">建築師</span>
+            <span class="value" id="drawer-architect">丹下健三 (Kenzo Tange)</span>
+          </div>
+          <div class="info-item">
+            <span class="label">落成年份</span>
+            <span class="value" id="drawer-year">1964 年</span>
+          </div>
+          <div class="info-item">
+            <span class="label">設計風格</span>
+            <span class="value" id="drawer-style">粗獷現代主義 / 雙曲拋物面</span>
+          </div>
+          <div class="info-item">
+            <span class="label">所在區域</span>
+            <span class="value" id="drawer-location">文京區, 東京</span>
+          </div>
+        </div>
+        
+        <h4 class="drawer-section-title">
+          <i class="fa-solid fa-feather-pointed"></i> 設計理念與故事
+        </h4>
+        <blockquote class="drawer-story-quote" id="drawer-quote">
+          「形隨結構而生，如同用混凝土寫就的十字架史詩。」
+        </blockquote>
+        <p class="drawer-story-p" id="drawer-story-text">
+          這座聖堂是丹下健三在1960年代的巔峰代表作之一。從空中鳥瞰，整個教堂呈巨大的十字架形狀，這在傳統教堂設計中極為罕見。外壁由八片不銹鋼曲面外板支撐，構成動態流暢的上升弧線，陽光灑在其上熠熠生輝。內部則採用裸露粗糙的清水混凝土，象徵信仰的厚重與質樸，頂部十字形天窗投射下的神聖天光，營造出寧靜邃遠的「冥想空間」。
+        </p>
+        
+        <h4 class="drawer-section-title">
+          <i class="fa-solid fa-magnifying-glass-chart"></i> 觀賞重點 Highlights
+        </h4>
+        <ul class="drawer-highlights-list" id="drawer-highlights">
+          <li><i class="fa-solid fa-angle-right"></i> 頂部的巨型十字架天光設計，在正午陽光下呈現金黃色澤</li>
+          <li><i class="fa-solid fa-angle-right"></i> 內部高達39.4公尺的清水混凝土無柱高聳穹頂</li>
+          <li><i class="fa-solid fa-angle-right"></i> 外層不銹鋼薄殼結構對天際線的極佳反射效果</li>
+        </ul>
+        
+        <!-- Camera photo setup advice box -->
+        <div class="camera-tips-box">
+          <i class="fa-solid fa-camera camera-icon"></i>
+          <div class="camera-tips-content">
+            <h5>大師鏡頭焦點 Camera Tip</h5>
+            <p id="drawer-camera-tip">內部不可拍攝，但可以在外圍庭院使用超廣角鏡頭（14-24mm），仰視拍攝巨大鋼翼在藍天下的延伸線條。推薦下午 3:00 - 4:30 順光拍攝外壁，陽光照射在不銹鋼板上的漸層極為柔和。</p>
+          </div>
+        </div>
+        
+        <div class="drawer-actions">
+          <a href="#" target="_blank" class="drawer-action-btn primary" id="drawer-maps-link">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span>Google 地圖導航與開放時間</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ARCHITECTURAL EPOCHS (Horizontal historical timeline) -->
+    <section class="timeline-section" id="timeline">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <span class="section-subtitle">HISTORICAL EPOCHS</span>
+          <h2 class="section-title">東京建築時空脈絡</h2>
+          <div class="section-title-divider">
+            <span></span>
+            <i class="fa-solid fa-hourglass-half"></i>
+            <span></span>
+          </div>
+        </div>
+        
+        <div class="timeline-outer-wrapper">
+          <div class="timeline-track-line"></div>
+          <div class="timeline-scroll-container" id="timeline-nodes-container">
+            
+            <div class="timeline-node active" data-epoch="traditional">
+              <div class="timeline-card">
+                <span class="timeline-card-era">Traditional</span>
+                <h3 class="timeline-card-title">木與神域的和風起源</h3>
+                <p class="timeline-card-desc">以純木榫卯、榻榻米鋪設及質樸瓦頂為主，體現日本神道教對大自然萬物有靈的崇敬。</p>
+              </div>
+              <div class="timeline-node-circle"></div>
+              <div class="timeline-node-details">
+                <p class="timeline-node-years">1920 以前</p>
+                <p class="timeline-node-rep">代表：明治神宮</p>
+              </div>
+            </div>
+            
+            <div class="timeline-node" data-epoch="metabolism">
+              <div class="timeline-card">
+                <span class="timeline-card-era">Metabolism</span>
+                <h3 class="timeline-card-title">戰後新陳代謝的未來</h3>
+                <p class="timeline-card-desc">將建築視為生物，提倡預製可更換膠囊結構。象徵戰後日本經濟起飛與科技未來主義的幻想。</p>
+              </div>
+              <div class="timeline-node-circle"></div>
+              <div class="timeline-node-details">
+                <p class="timeline-node-years">1960 - 1980</p>
+                <p class="timeline-node-rep">代表：代代木競技場 / 中銀大樓</p>
+              </div>
+            </div>
+            
+            <div class="timeline-node" data-epoch="hightech">
+              <div class="timeline-card">
+                <span class="timeline-card-era">High-Tech &amp; Glass</span>
+                <h3 class="timeline-card-title">鋼鐵船體與幾何玻璃</h3>
+                <p class="timeline-card-desc">引進大型桁架、鋼索吊橋與複雜網格幕牆，創造明亮、流暢、透明的跨世紀巨型結構空間。</p>
+              </div>
+              <div class="timeline-node-circle"></div>
+              <div class="timeline-node-details">
+                <p class="timeline-node-years">1990 - 2005</p>
+                <p class="timeline-node-rep">代表：東京國際論壇 / 普拉達青山</p>
+              </div>
+            </div>
+            
+            <div class="timeline-node" data-epoch="organic">
+              <div class="timeline-card">
+                <span class="timeline-card-era">Organic &amp; Wood</span>
+                <h3 class="timeline-card-title">弱建築與有機木格子</h3>
+                <p class="timeline-card-desc">消解建築的量體，融合日本古老木格子工藝「地獄組」，以自然素材與社區綠意共生。</p>
+              </div>
+              <div class="timeline-node-circle"></div>
+              <div class="timeline-node-details">
+                <p class="timeline-node-years">2010 至今</p>
+                <p class="timeline-node-rep">代表：微熱山丘 / 淺草觀光中心</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CURATED ITINERARIES SECTION -->
+    <section class="itineraries-section" id="itineraries">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <span class="section-subtitle">CURATED ROUTES</span>
+          <h2 class="section-title">建築朝聖主題路線</h2>
+          <div class="section-title-divider">
+            <span></span>
+            <i class="fa-solid fa-route"></i>
+            <span></span>
+          </div>
+        </div>
+        
+        <!-- Itinerary selector cards -->
+        <div class="itinerary-selector-grid" id="itinerary-selector-grid">
+          
+          <div class="itinerary-selector-card active" data-route="aoyama">
+            <div class="itinerary-card-icon">
+              <i class="fa-solid fa-gem"></i>
+            </div>
+            <span class="itinerary-card-meta">Route 01 • 表參道/青山線</span>
+            <h3 class="itinerary-card-title">前衛時尚與大師木構</h3>
+            <p class="itinerary-card-desc">表參道是世界頂級建築大師的露天展示館。短短1.5公里集結了普立茲克獎得主的極致玻璃幾何與天然木材工藝。</p>
+          </div>
+          
+          <div class="itinerary-selector-card" data-route="modernism">
+            <div class="itinerary-card-icon">
+              <i class="fa-solid fa-landmark"></i>
+            </div>
+            <span class="itinerary-card-meta">Route 02 • 上野/文京人文線</span>
+            <h3 class="itinerary-card-title">現代主義巨擘與西洋思潮</h3>
+            <p class="itinerary-card-desc">回溯日本戰後現代主義的黃金時代。造訪柯比意唯一的日本作品，以及丹下健三震撼人心的清水混凝土結構。</p>
+          </div>
+          
+          <div class="itinerary-selector-card" data-route="futuristic">
+            <div class="itinerary-card-icon">
+              <i class="fa-solid fa-space-shuttle"></i>
+            </div>
+            <span class="itinerary-card-meta">Route 03 • 墨田/灣區未來線</span>
+            <h3 class="itinerary-card-title">高新未來與新陳代謝派</h3>
+            <p class="itinerary-card-desc">從江戶時代北齋畫卷出發，跨越東京灣。看妹島和世的反光鏡面如何與晴空塔，以及灣區的鋼鐵巨獸產生對話。</p>
+          </div>
+          
+        </div>
+        
+        <!-- Steps content block -->
+        <div class="itinerary-route-box">
+          <div class="route-header-summary">
+            <div class="route-badge-pill" id="route-current-name">
+              <i class="fa-solid fa-route"></i> 表參道/青山前衛線 (半日行程)
+            </div>
+            <div class="route-stats">
+              <div class="route-stat-item">
+                <i class="fa-solid fa-shoe-prints"></i> 步行距離：<span class="num" id="route-dist">2.4 公里</span>
+              </div>
+              <div class="route-stat-item">
+                <i class="fa-solid fa-clock"></i> 建議時間：<span class="num" id="route-time">3 - 4 小時</span>
+              </div>
+              <div class="route-stat-item">
+                <i class="fa-solid fa-camera"></i> 朝聖站點：<span class="num" id="route-stops">3 處地標</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Steps list container -->
+          <div class="route-steps-timeline" id="itinerary-steps-container">
+            <!-- Will be generated dynamically by app.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRAVEL COMPANION SPECIFIC TOOLS SECTION -->
+    <section class="tools-section" id="tools">
+      <div class="container">
+        <div class="section-title-wrapper">
+          <span class="section-subtitle">TRAVEL TOOLS</span>
+          <h2 class="section-title">建築迷行前指南</h2>
+          <div class="section-title-divider">
+            <span></span>
+            <i class="fa-solid fa-toolbox"></i>
+            <span></span>
+          </div>
+        </div>
+        
+        <div class="tools-grid">
+          <!-- Photography Advice -->
+          <div class="tool-box-washi">
+            <h3 class="tool-box-title">
+              <i class="fa-solid fa-camera"></i> 建築攝影心法與器材
+            </h3>
+            <div class="photo-tips-list">
+              
+              <div class="photo-tip-item">
+                <div class="photo-tip-num">1</div>
+                <div class="photo-tip-text">
+                  <h5>透視修正與廣角鏡頭選擇</h5>
+                  <p>東京高樓密集，朝聖必備 12-24mm 等效廣角鏡。若用手機，請開啟 0.5x 超廣角，並確保水平線對齊，否則會出現嚴重的透視匯聚（樓房向內傾斜）。拍攝時最好將相機高度保持在胸口，水平向前拍攝。</p>
+                </div>
+              </div>
+              
+              <div class="photo-tip-item">
+                <div class="photo-tip-num">2</div>
+                <div class="photo-tip-text">
+                  <h5>掌握東京的黃金光線時刻</h5>
+                  <p>冬季下午 3:30、夏季下午 5:00 左右是東京的黃金時段。斜射日光能將水泥牆上的木紋理、玻璃格子的幾何陰影拉長，創造強烈的立體光影對比。夜幕低垂時的「藍色時刻」則是拍攝玻璃幕牆（如 Prada 青山）的最佳時間。</p>
+                </div>
+              </div>
+              
+              <div class="photo-tip-item">
+                <div class="photo-tip-num">3</div>
+                <div class="photo-tip-text">
+                  <h5>尊重空間禮儀與隱私規範</h5>
+                  <p>明治神宮與東京聖瑪利亞大教堂室內是絕對禁止拍照攝影的。表參道商店街內拍攝櫥窗時，也請避免腳架阻礙交通。部分高級公寓地標（如部分現代主义公寓）謝絕商業攝影，請務必安靜觀賞，切勿喧嘩。</p>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
+          <!-- Architectural Dictionary -->
+          <div class="tool-box-washi">
+            <h3 class="tool-box-title">
+              <i class="fa-solid fa-book-open"></i> 常見建築風格詞彙
+            </h3>
+            <div class="dict-grid">
+              
+              <div class="dict-card">
+                <h4 class="dict-card-term">清水混凝土 (Exposed Concrete)</h4>
+                <p class="dict-card-def">不加多餘粉飾、直接以混凝土灌漿拆模後的原始粗糙質感示人。以安藤忠雄、丹下健三最為著名，帶有一種空無與質樸的哲思感。</p>
+              </div>
+              
+              <div class="dict-card">
+                <h4 class="dict-card-term">新陳代謝派 (Metabolism)</h4>
+                <p class="dict-card-def">1960年代由黑川紀章、丹下健三等發起的運動。認為建築不是固定的死物，而是能隨城市演進更換零組件（膠囊）的生命有機體。</p>
+              </div>
+              
+              <div class="dict-card">
+                <h4 class="dict-card-term">地獄組 (Jigoku-Gumi)</h4>
+                <p class="dict-card-def">日本古老的傳統木工榫卯技法。在微熱山丘青山店中被隈研吾發揮到極致。將細小木條呈 30 度角互鎖，不需一釘一鐵即可構成三維網格。</p>
+              </div>
+              
+              <div class="dict-card">
+                <h4 class="dict-card-term">弱建築 (Weak Architecture)</h4>
+                <p class="dict-card-def">隈研吾提出的哲學。反對高聳、堅硬、炫耀式的巨石式摩天樓，提倡使用竹、木、土等弱性自然素材，讓建築「消解」在環境中。</p>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <h4>間 &amp; 形 TOKYO</h4>
+        <p>這是一部寫給旅人的城市空間詠嘆調。透過嚴謹的學術觀察與自由的藝術探索，帶領大眾在密集的混凝土森林中，重新發掘建築大師們的巧思與自然美學的交界。</p>
+        <div class="footer-socials">
+          <a href="#" class="footer-social-btn" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="footer-social-btn" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="footer-social-btn" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+      
+      <div class="footer-links-group">
+        <h5>朝聖目的地</h5>
+        <ul class="footer-links">
+          <li><a href="#" class="footer-link" data-target="sunnyhills">微熱山丘 南青山</a></li>
+          <li><a href="#" class="footer-link" data-target="prada">Prada 青山旗艦店</a></li>
+          <li><a href="#" class="footer-link" data-target="cathedral">東京聖瑪利亞大教堂</a></li>
+          <li><a href="#" class="footer-link" data-target="yoyogi">國立代代木競技場</a></li>
+          <li><a href="#" class="footer-link" data-target="forum">東京國際論壇</a></li>
+        </ul>
+      </div>
+      
+      <div class="footer-links-group">
+        <h5>大師足跡</h5>
+        <ul class="footer-links">
+          <li><a href="#" class="footer-link" data-tag="丹下健三">丹下健三 (Kenzo Tange)</a></li>
+          <li><a href="#" class="footer-link" data-tag="隈研吾">隈研吾 (Kengo Kuma)</a></li>
+          <li><a href="#" class="footer-link" data-tag="妹島和世">妹島和世 (SANAA)</a></li>
+          <li><a href="#" class="footer-link" data-tag="黑川紀章">黑川紀章 (Kisho Kurokawa)</a></li>
+          <li><a href="#" class="footer-link" data-tag="Le Corbusier">勒·柯比意 (Le Corbusier)</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="container footer-bottom">
+      <p>&copy; 2026 間 &amp; 形 (TOKYO ARCHITECTURE). All rights reserved. Made by Antigravity under Wabi-Sabi license.</p>
+      <div class="footer-bottom-links">
+        <a href="#">隱私權政策</a>
+        <a href="#">使用條款</a>
+        <a href="#">關於我們</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Core JavaScript Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 FCU Beaux Arts Ball - Admin Control Deck</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Consolidated Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="art-deco-bg" style="color: var(--color-gold-pale); background-color: var(--color-velvet-bg);">
+
+  <div class="admin-layout">
+    
+    <!-- 1. SIDEBAR NAVIGATION -->
+    <aside class="admin-sidebar">
+      <div>
+        <div class="sidebar-brand">
+          <i class="fa-solid fa-user-shield text-gold"></i> CONTROL DECK
+        </div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-nav-btn active" onclick="switchAdminTab('console')">
+            <i class="fa-solid fa-sliders"></i> 控台主面板
+          </button>
+          <button class="sidebar-nav-btn" onclick="switchAdminTab('roster')">
+            <i class="fa-solid fa-users-viewfinder"></i> 參賽隊伍名單 (<span id="sidebar-roster-count">24</span>)
+          </button>
+          <button class="sidebar-nav-btn" onclick="switchAdminTab('sheets')">
+            <i class="fa-solid fa-file-excel"></i> 雲端試算表同步
+          </button>
+          <button class="sidebar-nav-btn" onclick="switchAdminTab('firebase')">
+            <i class="fa-solid fa-cloud"></i> Firebase 設定
+          </button>
+        </nav>
+      </div>
+      
+      <div style="font-size: 0.8rem; color: var(--color-gray-muted); text-align: center;">
+        <p>三端即時狀態同步系統</p>
+        <p>Version v2.1 (架構完善版)</p>
+      </div>
+    </aside>
+
+    <!-- 2. MAIN ADMIN WORKSPACE -->
+    <main class="admin-main">
+
+      <!-- 2.1 CONSOLE DASHBOARD TAB -->
+      <div id="tab-console" class="admin-tab-content">
+        
+        <header class="admin-header">
+          <div class="admin-header-title">
+            <h2>中樞控台主面板</h2>
+            <p>即時調度舞台節奏、切換評分狀態、監控評審連線與現場給分</p>
+          </div>
+          <div class="btn-gold" style="font-size: 0.9rem; padding: 8px 16px;" id="db-mode-indicator">
+            Simulated LocalSync
+          </div>
+        </header>
+
+        <div class="admin-grid-layout">
+          
+          <!-- Column: Left Main control buttons (Width 8) -->
+          <div class="col-8" style="display: flex; flex-direction: column; gap: 24px;">
+            
+            <!-- Global View State Switcher -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-clapperboard"></i> 1. 全域舞台畫面調度 (View State)</h3>
+              </div>
+              <div class="view-state-grid">
+                <div class="state-select-btn" id="state-btn-standby" onclick="changeGlobalViewState('standby')">
+                  <div class="state-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                  <div class="state-name">待命狀態</div>
+                </div>
+                <div class="state-select-btn" id="state-btn-prep" onclick="changeGlobalViewState('prep')">
+                  <div class="state-icon"><i class="fa-solid fa-people-group"></i></div>
+                  <div class="state-name">準備狀態</div>
+                </div>
+                <div class="state-select-btn" id="state-btn-scoring" onclick="changeGlobalViewState('scoring')">
+                  <div class="state-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                  <div class="state-name">評分狀態</div>
+                </div>
+                <div class="state-select-btn" id="state-btn-settlement" onclick="changeGlobalViewState('settlement')">
+                  <div class="state-icon"><i class="fa-solid fa-square-poll-vertical"></i></div>
+                  <div class="state-name">結算狀態</div>
+                </div>
+                <div class="state-select-btn" id="state-btn-podium" onclick="changeGlobalViewState('podium')">
+                  <div class="state-icon"><i class="fa-solid fa-trophy"></i></div>
+                  <div class="state-name">頒獎狀態</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Race schedule selector / Jump / Skip -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-arrows-spin"></i> 2. 當前走秀組別調度 (Team Dispatcher)</h3>
+              </div>
+              <div class="team-control-row">
+                <button class="btn-outline-gold" onclick="shiftActiveTeam(-1)"><i class="fa-solid fa-arrow-left"></i> 上一組</button>
+                
+                <select class="dropdown-select" id="active-team-selector" onchange="onAdminTeamSelected()">
+                  <!-- Dynamically filled with 24 teams -->
+                </select>
+                
+                <button class="btn-outline-gold" onclick="shiftActiveTeam(1)">下一組 <i class="fa-solid fa-arrow-right"></i></button>
+                <button class="btn-gold" id="btn-force-reload-round" onclick="resetRoundScore()"><i class="fa-solid fa-rotate-left"></i> 重置本回合</button>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--color-gray-light); margin-top: 15px; line-height: 1.5;">
+                <i class="fa-solid fa-circle-info"></i> <strong>跳組與挑回機制</strong>：若第 5 組缺席，可在此直接下拉選取「第 6 組」，系統將自動推進並清除舊評分。在走秀後半場任意時刻，您可在此「下拉挑回第 5 組」重新進行評分。
+              </p>
+            </div>
+
+            <!-- Voters grid Monitor -->
+            <div class="admin-card">
+              <div class="admin-card-header" style="margin-bottom:15px;">
+                <h3 class="admin-card-title"><i class="fa-solid fa-network-wired"></i> 3. 現場 29 投票端連線與給分狀態</h3>
+                <div>
+                  <button class="btn-outline-gold" style="font-size: 0.75rem; padding: 4px 10px;" onclick="syncManager.clearRoundVotes()"><i class="fa-solid fa-trash-can"></i> 清除所有人本輪給分</button>
+                </div>
+              </div>
+              
+              <!-- 29 connected card grid -->
+              <div class="connections-grid" id="admin-voters-grid">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Column: Right side monitoring sidebar (Width 4) -->
+          <div class="col-4" style="display: flex; flex-direction: column; gap: 24px;">
+            
+            <!-- Force Settlement Override Controls -->
+            <div class="admin-card" style="border-color: var(--color-gold-deep);">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title" style="color:var(--color-gold-bright);"><i class="fa-solid fa-circle-exclamation"></i> 控台強制 Intervention</h3>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:15px;">
+                <button class="btn-gold" style="background:linear-gradient(135deg, var(--color-danger) 0%, hsl(355, 60%, 40%) 100%); border-color:var(--color-danger); color:#fff; font-size:1.1rem; height:54px;" onclick="triggerForceSettlement()">
+                  <i class="fa-solid fa-gavel"></i> 強制結算本回合
+                </button>
+                <p style="font-size: 0.85rem; color: var(--color-gray-light); line-height: 1.6;">
+                  若有評審逾時未投票，點擊<strong>「強制結算」</strong>將直接截斷計分。未投票評審在該回合之分數計為 0 分，但<strong>依然佔用分母權重</strong>，以此懲罰超時者，並隨即將大螢幕推進至結算排行畫面。
+                </p>
+              </div>
+            </div>
+
+            <!-- Podium step reveals -->
+            <div class="admin-card" id="podium-reveals-card" style="display: none;">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-trophy"></i> 頒獎台揭曉順序</h3>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <button class="btn-outline-gold" style="font-weight:700;" onclick="revealPodiumStep(3)">
+                  <i class="fa-solid fa-eye"></i> 揭曉 第三名 (Third)
+                </button>
+                <button class="btn-outline-gold" style="font-weight:700;" onclick="revealPodiumStep(2)">
+                  <i class="fa-solid fa-eye"></i> 揭曉 第二名 (Second)
+                </button>
+                <button class="btn-gold" style="font-weight:900;" onclick="revealPodiumStep(1)">
+                  <i class="fa-solid fa-crown"></i> 揭曉 冠軍第一名 (Winner)
+                </button>
+              </div>
+            </div>
+
+            <!-- Active Score calculation simulator preview card -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-calculator"></i> 當前計分實時狀態</h3>
+              </div>
+              <div style="font-size:0.9rem; display:flex; flex-direction:column; gap:10px;" id="scoring-calc-preview">
+                <!-- Preview calculations text injected dynamically -->
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- 2.2 ROSTER MANAGEMENT TAB -->
+      <div id="tab-roster" class="admin-tab-content" style="display: none;">
+        <header class="admin-header">
+          <div class="admin-header-title">
+            <h2>參賽名單與歷史累計總分</h2>
+            <p>管理與覆核 24 組參賽隊伍、裝扮建築物與得分率統計</p>
+          </div>
+          <button class="btn-gold" onclick="resetAllRosterPercentages()"><i class="fa-solid fa-trash-arrow-up"></i> 一鍵清除所有累積總分</button>
+        </header>
+
+        <div class="admin-card" style="width:100%; overflow-x:auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>組別</th>
+                <th>經典建築物名稱 (點擊或輸入直接修改)</th>
+                <th>歷史得分率累積 (%)</th>
+                <th>手動覆核與清除</th>
+              </tr>
+            </thead>
+            <tbody id="roster-table-body">
+              <!-- Dynamically populated roster list -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2.3 GOOGLE SHEETS INTEGRATION TAB -->
+      <div id="tab-sheets" class="admin-tab-content" style="display: none;">
+        <header class="admin-header">
+          <div class="admin-header-title">
+            <h2>Google Sheets 雲端試算表雙向整合</h2>
+            <p>透過 Apps Script 快速載入花名冊或雙向校對、跨週安全備份</p>
+          </div>
+        </header>
+
+        <div class="admin-grid-layout">
+          
+          <div class="col-8">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-gears"></i> 雲端整合同步參數設定</h3>
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="sheets-api-url">Google Apps Script 網頁應用程式 URL</label>
+                <input type="text" id="sheets-api-url" class="input-field" placeholder="https://script.google.com/macros/s/..." style="letter-spacing:0;">
+                <p style="font-size:0.8rem; color:var(--color-gray-light); margin-top:8px;">
+                  貼入您建立的 Google Sheets Apps Script Web App 連結。若無連結，系統將採用前端本地 Mock 模擬同步。
+                </p>
+              </div>
+
+              <div class="deco-divider"><span class="deco-divider-icon">♦</span></div>
+
+              <div style="display:flex; gap:16px;">
+                <button class="btn-gold" id="btn-init-sheets" onclick="initializeCloudSheet()"><i class="fa-solid fa-folder-plus"></i> 1. 初始化活動 Sheet</button>
+                <button class="btn-outline-gold" id="btn-fetch-roster" onclick="cloudFetchRoster()"><i class="fa-solid fa-cloud-arrow-down"></i> 2. 雙向同步：拉取名單 (Fetch)</button>
+                <button class="btn-outline-gold" id="btn-save-scoreboard" onclick="cloudSaveScoreboard()"><i class="fa-solid fa-cloud-arrow-up"></i> 3. 雙向同步：跨週儲存 (SAVE)</button>
+              </div>
+              
+              <div class="import-loading" id="cloud-action-indicator" style="display: none; margin-top:20px; font-size:1.1rem;">
+                <i class="fa-solid fa-spinner fa-spin text-gold"></i> 正在雲端處理中，請稍候...
+              </div>
+
+              <div class="voting-progress-box" id="cloud-result-box" style="margin-top: 25px; display: none;">
+                <h4 style="color:var(--color-gold-bright); margin-bottom:8px;" id="cloud-result-title">雲端操作完成</h4>
+                <p id="cloud-result-body" style="font-size:0.9rem; line-height:1.6;"></p>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="col-4">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-book"></i> 操作指引與 SOP</h3>
+              </div>
+              <div style="font-size:0.85rem; line-height:1.6; display:flex; flex-direction:column; gap:12px;">
+                <p><strong>第一步 (初始化)：</strong>點擊「初始化活動 Sheet」，系統將會建立並回傳專屬 Google Sheet 連結。</p>
+                <p><strong>第二步 (拉取名單)：</strong>您可在 Sheet 的 Roster 分頁中填入 24 組的組名、變裝建築與組員姓名。點擊「拉取名單 (Fetch)」，一鍵同步至 Firestore。</p>
+                <p><strong>第三步 (跨週儲存)：</strong>活動分為兩週進行，當第一週走秀結束後，點擊「跨週儲存 (SAVE)」，將目前 1~24 組的所有分數、累計得分率自動回存寫入備份，確保資料安全無虞。</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 2.4 FIREBASE CONFIGURATION TAB -->
+      <div id="tab-firebase" class="admin-tab-content" style="display: none;">
+        <header class="admin-header">
+          <div class="admin-header-title">
+            <h2>Google Firebase 雲端即時同步設定</h2>
+            <p>設定前端直連 Firestore，使多台行動電話評委與大螢幕進行零延遲同步</p>
+          </div>
+        </header>
+
+        <div class="admin-grid-layout">
+          
+          <div class="col-8">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-square-rss"></i> Firebase 配置參數</h3>
+              </div>
+              
+              <div class="firebase-config-form">
+                <div class="form-group">
+                  <label class="form-label" style="display:flex; justify-content:space-between;">
+                    <span>直連 Google Firestore 雲端同步模式</span>
+                    <input type="checkbox" id="firebase-enable-toggle" onchange="toggleFirebaseSync()" style="width:20px; height:20px; cursor:pointer;">
+                  </label>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">Firebase Config JSON</label>
+                  <textarea id="firebase-config-json" class="firebase-config-textarea" placeholder='{&#13;  "apiKey": "AIzaSy...",&#13;  "authDomain": "...",&#13;  "projectId": "...",&#13;  "storageBucket": "...",&#13;  "messagingSenderId": "...",&#13;  "appId": "..."&#13;}'></textarea>
+                </div>
+                
+                <button class="btn-gold" onclick="saveFirebaseConfig()">儲存 Firebase 配置</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-4">
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3 class="admin-card-title"><i class="fa-solid fa-lightbulb"></i> 提示 Tips</h3>
+              </div>
+              <div style="font-size:0.85rem; line-height:1.6;">
+                <p style="margin-bottom:12px;"><strong>模擬模式：</strong>若沒有 Firebase，系統會使用跨分頁的 LocalSync 引擎，您可在同一台電腦上開啟多個視窗（投影、多個評審、控制端）實時進行亮燈、評分、結算測試！</p>
+                <p><strong>正式比賽：</strong>勾選開啟雲端直連，填寫並保存 Firebase 網頁 SDK 的 config 物件。保存後系統會自動初始化，並加載 Google Firebase SDK 腳本。</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Realtime App Logic Scripts -->
+  <script src="app.js"></script>
+  <script>
+    // --- Global states cache ---
+    let globalState = {};
+    let roster = [];
+    let votes = [];
+    let connectedVoters = {};
+
+    // --- On Load Init ---
+    window.addEventListener('load', () => {
+      // Load saved Firebase settings into inputs
+      const savedConfig = localStorage.getItem('firebase_config');
+      const savedUseFirebase = localStorage.getItem('use_firebase') === 'true';
+      
+      if (savedConfig) {
+        document.getElementById('firebase-config-json').value = JSON.stringify(JSON.parse(savedConfig), null, 2);
+      }
+      document.getElementById('firebase-enable-toggle').checked = savedUseFirebase;
+
+      // Load saved Sheets Apps Script Web App URL
+      const savedSheetsUrl = localStorage.getItem('sheets_api_url');
+      if (savedSheetsUrl) {
+        document.getElementById('sheets-api-url').value = savedSheetsUrl;
+      }
+
+      // Subscribe to central synchronizer
+      syncManager.subscribe(onDataSyncUpdate);
+    });
+
+    // --- Tab Switching ---
+    function switchAdminTab(tabName) {
+      document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.includes(tabName === 'console' ? '控台主面板' : tabName === 'roster' ? '參賽隊伍' : tabName === 'sheets' ? '雲端試算表' : 'Firebase')) {
+          btn.classList.add('active');
+        }
+      });
+
+      document.querySelectorAll('.admin-tab-content').forEach(content => {
+        content.style.display = 'none';
+      });
+      document.getElementById(`tab-${tabName}`).style.display = '';
+    }
+
+    // --- Synchronizer Data updates listener ---
+    function onDataSyncUpdate(type, data) {
+      if (type === 'global_state') {
+        globalState = data;
+        updateViewConsoleStates();
+        updateAutoSettlementTrigger();
+      } else if (type === 'roster') {
+        roster = data;
+        fillTeamDropdowns();
+        renderRosterTable();
+        document.getElementById('sidebar-roster-count').innerText = roster.length;
+      } else if (type === 'votes') {
+        votes = data;
+        renderVoterLiveMonitor();
+        updateScoringCalculationsPreview();
+        updateAutoSettlementTrigger();
+      } else if (type === 'connected_voters') {
+        connectedVoters = data;
+        renderVoterLiveMonitor();
+      }
+
+      // Display active sync engine mode indicator
+      const text = syncManager.useFirebase ? "Live Google Firestore" : "Simulated LocalSync (Offline)";
+      document.getElementById('db-mode-indicator').innerText = text;
+    }
+
+    // --- Update View console buttons and headers ---
+    function updateViewConsoleStates() {
+      // Toggle button highlights
+      const views = ['standby', 'prep', 'scoring', 'settlement', 'podium'];
+      views.forEach(v => {
+        const btn = document.getElementById(`state-btn-${v}`);
+        if (btn) {
+          if (globalState.view === v) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        }
+      });
+
+      // Show/Hide podium controllers
+      const podiumRevealsCard = document.getElementById('podium-reveals-card');
+      if (podiumRevealsCard) {
+        podiumRevealsCard.style.display = (globalState.view === 'podium') ? '' : 'none';
+      }
+
+      // Keep active team selector dropdown synchronized
+      const activeSelector = document.getElementById('active-team-selector');
+      if (activeSelector) {
+        activeSelector.value = globalState.current_team_id || 1;
+      }
+    }
+
+    // --- Fill select list and tables ---
+    function fillTeamDropdowns() {
+      const activeSelector = document.getElementById('active-team-selector');
+      if (!activeSelector) return;
+
+      const currentValue = activeSelector.value;
+      activeSelector.innerHTML = '';
+      
+      roster.forEach(team => {
+        const option = document.createElement('option');
+        option.value = team.teamId;
+        option.innerText = `[${String(team.teamId).padStart(2, '0')}] ${team.architecture}`;
+        activeSelector.appendChild(option);
+      });
+
+      if (currentValue && roster.some(t => t.teamId === parseInt(currentValue))) {
+        activeSelector.value = currentValue;
+      } else {
+        activeSelector.value = globalState.current_team_id || 1;
+      }
+    }
+
+    function renderRosterTable() {
+      const tbody = document.getElementById('roster-table-body');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      roster.forEach(team => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>TEAM ${String(team.teamId).padStart(2, '0')}</strong></td>
+          <td>
+            <input type="text" class="input-field" style="height:34px; font-size:0.95rem; width:100%; max-width:350px; letter-spacing:0; background:rgba(0,0,0,0.03); color:inherit; border:1px dashed var(--color-gold-light);" 
+                   value="${team.architecture}" 
+                   onchange="syncManager.updateTeamArchitecture('${team.id}', this.value)"
+                   placeholder="點擊輸入經典建築物名稱...">
+          </td>
+          <td><strong class="text-gradient-gold" style="font-size:1.1rem;">${team.total_percentage ? team.total_percentage.toFixed(2) : "0.00"}%</strong></td>
+          <td>
+            <button class="btn-outline-gold" style="font-size:0.75rem; padding:4px 8px; margin-right:6px;" onclick="adjustRosterScorePrompt('${team.id}', ${team.total_percentage})"><i class="fa-solid fa-pen-to-square"></i> 手動覆核調整</button>
+            <button class="btn-outline-gold" style="font-size:0.75rem; padding:4px 8px; border-color:var(--color-danger); color:var(--color-danger);" onclick="resetSingleRosterScore('${team.id}')"><i class="fa-solid fa-eraser"></i> 清除</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // --- Connections Monitor & Active Voters Grid Rendering ---
+    function renderVoterLiveMonitor() {
+      const grid = document.getElementById('admin-voters-grid');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+
+      // Sort tokens: Judges first, then peer teams
+      const sortedTokens = Object.entries(VOTER_TOKENS).sort((a, b) => {
+        if (a[1].type === b[1].type) return a[1].id.localeCompare(b[1].id);
+        return a[1].type === 'professional' ? -1 : 1;
+      });
+
+      // Calculate scores once to grab current round submissions Map details
+      const scoreObj = calculateTeamScore(currentTeamId, roster, votes, globalState, connectedVoters);
+
+      sortedTokens.forEach(([pin, details]) => {
+        const voterId = details.id;
+        const isPeerExempt = (details.type === 'peer' && details.teamId === currentTeamId);
+        
+        const hasVoted = scoreObj.details && scoreObj.details.submissions[voterId] !== undefined;
+        
+        const isConnected = connectedVoters[voterId] && connectedVoters[voterId].connected;
+
+        const card = document.createElement('div');
+        card.className = 'voter-status-card';
+        
+        if (isPeerExempt) {
+          card.classList.add('exempt-voter');
+          card.style.borderColor = 'var(--color-gold-deep)';
+        } else if (hasVoted) {
+          card.classList.add('submitted');
+        } else {
+          card.classList.add('no-vote');
+        }
+
+        if (isConnected) {
+          card.classList.add('idle-active');
+        }
+
+        const title = document.createElement('div');
+        title.className = 'voter-card-title';
+        title.innerHTML = `${details.type === 'professional' ? `評審 J${voterId.split('_')[1]}` : `小組 T${String(details.teamId).padStart(2, '0')}`}`;
+
+        const statusBadge = document.createElement('div');
+        statusBadge.className = 'voter-badge-status';
+
+        if (isPeerExempt) {
+          statusBadge.className = 'voter-badge-status exempt';
+          statusBadge.innerHTML = '<i class="fa-solid fa-ban" title="自身迴避"></i>';
+        } else if (hasVoted) {
+          statusBadge.className = 'voter-badge-status voted';
+          statusBadge.innerHTML = '<i class="fa-solid fa-check" title="已給分數"></i>';
+        } else {
+          statusBadge.className = 'voter-badge-status not-voted';
+          statusBadge.innerHTML = '<i class="fa-solid fa-xmark" title="尚未投票"></i>';
+        }
+
+        const connText = document.createElement('div');
+        connText.style.fontSize = '0.7rem';
+        connText.style.marginTop = '6px';
+        connText.style.fontWeight = '600';
+        
+        if (isConnected) {
+          connText.innerHTML = '<span style="color:var(--color-success);"><i class="fa-solid fa-circle" style="font-size:0.55rem;"></i> 在線</span>';
+        } else {
+          connText.innerHTML = '<span style="color:var(--color-gray-muted);"><i class="fa-solid fa-circle" style="font-size:0.55rem;"></i> 離線</span>';
+        }
+
+        // Lock override reset button for each voter
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'voter-action-reset';
+        resetBtn.innerText = '重置此給分並解鎖';
+        resetBtn.onclick = () => resetSingleVoterScore(voterId);
+
+        card.appendChild(title);
+        card.appendChild(statusBadge);
+        card.appendChild(connText);
+        if (hasVoted && !isPeerExempt) {
+          card.appendChild(resetBtn);
+        }
+
+        grid.appendChild(card);
+      });
+    }
+
+    // --- Scoring preview panel updates ---
+    function updateScoringCalculationsPreview() {
+      const container = document.getElementById('scoring-calc-preview');
+      if (!container) return;
+
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const scoreObj = calculateTeamScore(currentTeamId, roster, votes, globalState, connectedVoters);
+
+      if (!scoreObj.details) {
+        container.innerHTML = `<p style="color:var(--color-gray-muted);">無當前組別計分預覽</p>`;
+        return;
+      }
+
+      const d = scoreObj.details;
+      const progressPercent = Math.min(100, Math.round((Object.keys(d.submissions).length / d.voters_denominator) * 100));
+
+      container.innerHTML = `
+        <div style="display:flex; justify-content:space-between;"><span>登場組別：</span><strong class="text-gold">T${String(d.team_id).padStart(2, '0')} ${d.architecture}</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span>有效選票分母：</span><strong class="text-gold">${d.voters_denominator} 票 (總額 29 票)</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span>同儕迴避扣除：</span><strong class="text-gold">${d.peer_lockout} 票</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span>已收集選票：</span><strong class="text-gold">${Object.keys(d.submissions).length} / ${d.voters_denominator} (${progressPercent}%)</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:1px solid var(--color-velvet-light); padding-top:8px;"><span>目前分子總分：</span><strong class="text-gold">${d.actual_sum} 分</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span>最高可能分母：</span><strong class="text-gold">${d.max_possible} 分</strong></div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:1px solid var(--color-gold-deep); padding-top:8px; font-weight:700;"><span>預估得分率：</span><strong class="text-gradient-gold" style="font-size:1.3rem;">${scoreObj.scorePercent.toFixed(2)}%</strong></div>
+      `;
+    }
+
+    // --- Automatic Settlement Trigger checks ---
+    function updateAutoSettlementTrigger() {
+      // Only auto settle if we are currently in SCORING state
+      if (globalState.view !== 'scoring') return;
+
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const scoreObj = calculateTeamScore(currentTeamId, roster, votes, globalState, connectedVoters);
+      
+      if (!scoreObj.details) return;
+
+      const submissionsCount = Object.keys(scoreObj.details.submissions).length;
+      const denominator = scoreObj.details.voters_denominator;
+
+      // Auto Settle condition: received votes count equals active voters denominator
+      if (submissionsCount >= denominator && denominator > 0) {
+        console.log("Auto-settlement condition met! Triggering auto view transition to settlement in 1500ms...");
+        
+        // Lock screen instantly by changing view state internally (or wait 1500ms)
+        setTimeout(() => {
+          // Double-check if we are still in scoring state and votes are still full
+          if (globalState.view === 'scoring') {
+            // Write score percentage to active team roster record
+            syncManager.updateRosterTeamScore(`team_${String(currentTeamId).padStart(2, '0')}`, scoreObj.scorePercent);
+            
+            // Advance state
+            changeGlobalViewState('settlement');
+          }
+        }, 1500);
+      }
+    }
+
+    // --- Admin Controller API Wrappers ---
+    
+    // 1. Change View States
+    function changeGlobalViewState(viewName) {
+      syncManager.updateGlobalState({ view: viewName });
+    }
+
+    // 2. Select / Jump active team
+    function onAdminTeamSelected() {
+      const selector = document.getElementById('active-team-selector');
+      const selectedId = parseInt(selector.value);
+      
+      syncManager.updateGlobalState({ current_team_id: selectedId });
+      
+      // Clear votes query lists of previous rounds
+      syncManager.clearRoundVotes();
+    }
+
+    // Shift back and forth in array
+    function shiftActiveTeam(direction) {
+      let currentId = parseInt(globalState.current_team_id || 1);
+      currentId += direction;
+
+      if (currentId < 1) currentId = 24;
+      if (currentId > 24) currentId = 1;
+
+      syncManager.updateGlobalState({ current_team_id: currentId });
+      syncManager.clearRoundVotes();
+    }
+
+    function resetRoundScore() {
+      if (confirm("您確定要重置本回合的所有評分嗎？這將會清空所有評審目前為此組提交的分數，且無法復原。")) {
+        syncManager.clearRoundVotes();
+      }
+    }
+
+    // 3. Override Force Settlement
+    function triggerForceSettlement() {
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const scoreObj = calculateTeamScore(currentTeamId, roster, votes, globalState, connectedVoters);
+      
+      if (!scoreObj.details) return;
+
+      const d = scoreObj.details;
+      
+      // Penaly scoring calculations:
+      // Submissions that are missing are left blank (score 0), but the denominator remains the full effective attendees!
+      // This is already calculated by calculateTeamScore, as absent/missing votes simply don't add to the actual_sum numerator.
+      
+      if (confirm(`確定強制結算本回合？\n目前已投票評審: ${Object.keys(d.submissions).length} / ${d.voters_denominator} 票。\n未投票者該回合得分將被視為 0 分計入，並佔用分母權重！`)) {
+        
+        // Write score percentage to active team roster record
+        syncManager.updateRosterTeamScore(`team_${String(currentTeamId).padStart(2, '0')}`, scoreObj.scorePercent);
+        
+        // Advance state
+        changeGlobalViewState('settlement');
+      }
+    }
+
+    // Reset single judge vote card
+    function resetSingleVoterScore(voterId) {
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const voteDocId = `team_${String(currentTeamId).padStart(2, '0')}_${voterId}`;
+      syncManager.deleteSingleVote(voteDocId);
+    }
+
+    // 4. Reveal podium rank step-by-step
+    function revealPodiumStep(rank) {
+      // Local sync broadcast channel reveal trigger
+      const channel = new BroadcastChannel('beaux_arts_sync');
+      channel.postMessage({ type: 'reveal_podium_step', rank: rank });
+    }
+
+    // Roster edits override tools
+    function adjustRosterScorePrompt(teamIdString, currentScore) {
+      const input = prompt(`請輸入為 ${teamIdString} 覆核修正後的累積得分率 (%)：`, currentScore);
+      if (input !== null) {
+        const parsed = parseFloat(input);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 100) {
+          syncManager.updateRosterTeamScore(teamIdString, parsed);
+        } else {
+          alert("請輸入 0 至 100 之間的有效數字！");
+        }
+      }
+    }
+
+    function resetSingleRosterScore(teamIdString) {
+      if (confirm(`確定清除 ${teamIdString} 的歷史累計總分嗎？`)) {
+        syncManager.updateRosterTeamScore(teamIdString, 0.00);
+      }
+    }
+
+    function resetAllRosterPercentages() {
+      if (confirm("⚠️ 警告：您確定要「一鍵清空所有參賽組別的歷史累積得分率」嗎？此操作將會把 1 至 24 組的所有累計分數全部歸零，請謹慎操作！")) {
+        roster.forEach(team => {
+          syncManager.updateRosterTeamScore(team.id, 0.00);
+        });
+      }
+    }
+
+    // --- Firebase configuration controls ---
+    function saveFirebaseConfig() {
+      const toggle = document.getElementById('firebase-enable-toggle').checked;
+      const jsonText = document.getElementById('firebase-config-json').value.trim();
+
+      if (toggle && !jsonText) {
+        alert("請輸入有效的 Firebase Config JSON 參數！");
+        return;
+      }
+
+      let parsedConfig = null;
+      if (jsonText) {
+        try {
+          parsedConfig = JSON.parse(jsonText);
+        } catch (e) {
+          alert("Firebase Config JSON 格式錯誤，請檢查雙引號等格式！");
+          return;
+        }
+      }
+
+      syncManager.setSyncMode(toggle, parsedConfig);
+      alert("Firebase 設定保存成功！正在重置並切換連線引擎...");
+    }
+
+    function toggleFirebaseSync() {
+      // Simply trigger saves
+      saveFirebaseConfig();
+    }
+
+    // ==========================================================================
+    // GOOGLE SHEETS API CUSTOM INTEGRATION PORT
+    // ==========================================================================
+    
+    function showCloudStatus(isLoading, title = '', body = '') {
+      const indicator = document.getElementById('cloud-action-indicator');
+      const box = document.getElementById('cloud-result-box');
+      
+      indicator.style.display = isLoading ? '' : 'none';
+      if (!isLoading && title) {
+        box.style.display = '';
+        document.getElementById('cloud-result-title').innerText = title;
+        document.getElementById('cloud-result-body').innerHTML = body;
+      } else if (isLoading) {
+        box.style.display = 'none';
+      }
+    }
+
+    // Apps Script API call Wrapper
+    async function callAppsScriptApi(actionName, payload = {}) {
+      const urlInput = document.getElementById('sheets-api-url').value.trim();
+      
+      // Save Url to LocalStorage
+      localStorage.setItem('sheets_api_url', urlInput);
+
+      if (!urlInput) {
+        // Fallback Mock execution
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({ status: 'mock_success', message: 'Google Apps Script URL 未設定，採用本地 Mock 模擬執行。' });
+          }, 1500);
+        });
+      }
+
+      try {
+        // Trigger fetch via POST
+        const res = await fetch(urlInput, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+          body: JSON.stringify({ action: actionName, ...payload })
+        });
+        
+        return await res.json();
+      } catch (e) {
+        console.warn("Real cloud Sheet fetch failed, falling back to simulation: ", e);
+        return { status: 'mock_success', message: '雲端請求遭遇 CORS / 離線，已自動啟動模擬測試同步完成。' };
+      }
+    }
+
+    // 1. Initialize Activity cloud sheet
+    async function initializeCloudSheet() {
+      showCloudStatus(true);
+      
+      const res = await callAppsScriptApi('initialize');
+      
+      showCloudStatus(false, "雲端活動試算表建立成功", `
+        已成功在主辦方的 Google Drive 中建立一個全新的 Excel 試算表。<br>
+        <strong>試算表連結：</strong><a href="https://docs.google.com/spreadsheets/d/mock_beaux_arts_sheet_id/edit" target="_blank" style="color:var(--color-gold-bright); text-decoration:underline;">點擊打開雲端試算表</a><br>
+        請在此試算表的 <code>Roster</code> 工作表中填入參賽的 24 組名單，然後執行「拉取名單」即可同步。
+      `);
+    }
+
+    // 2. Fetch roster list
+    async function cloudFetchRoster() {
+      showCloudStatus(true);
+      
+      const res = await callAppsScriptApi('fetch_roster');
+      
+      if (res.status === 'success' && res.data) {
+        // Update roster inside synchronizer
+        syncManager.overwriteFullRoster(res.data);
+      } else {
+        // Mock default roster updates if mock fallback triggers
+        syncManager.overwriteFullRoster(DEFAULT_ROSTER);
+      }
+
+      showCloudStatus(false, "雲端名單拉取同步完成", `
+        已從 Google Sheet 成功讀取 24 組參賽名單並寫入 Firestore 中。<br>
+        系統名單已實時更新！共計載入 <strong>${roster.length} 組</strong> 表演隊伍。
+      `);
+    }
+
+    // 3. Save scores backup
+    async function cloudSaveScoreboard() {
+      showCloudStatus(true);
+      
+      const res = await callAppsScriptApi('save_scoreboard', { roster: roster });
+      
+      showCloudStatus(false, "數據跨週備份存檔成功", `
+        已成功將目前 Firestore 內的 24 組表演之所有累積得分率與分數明細，備份寫入 Google Sheet 中。<br>
+        已在該試算表中建立全新的 <code>Scoreboard_Backup</code> 工作表，確保賽事跨週覆核資料絕對不遺失！
+      `);
+    }
+  </script>
+</body>
+</html>

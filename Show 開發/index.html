@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="2026 FCU Beaux Arts Ball - Architecture Costume Show 專屬數位評分與視覺控制系統門戶網站。結合 1931 巴黎美院復古美學與現代 Firestore 即時資料同步技術。">
+  <title>2026 FCU Beaux Arts Ball - Architecture Costume Show Portal</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Consolidated Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="art-deco-bg">
+
+  <div class="portal-container">
+    
+    <!-- Portal Header Section -->
+    <header class="portal-header">
+      <div class="art-deco-frame" style="border-bottom: none; border-radius: 8px 8px 0 0; padding-bottom: 10px;">
+        <div class="deco-corners"></div>
+        <p class="text-gold" style="font-family: var(--font-display); font-size: 1.1rem; letter-spacing: 4px; text-transform: uppercase;">
+          建築學思與實踐 • 致敬 1931 Society of Beaux-Arts Architects Ball
+        </p>
+      </div>
+      <div class="art-deco-frame" style="border-radius: 0 0 8px 8px; background: var(--color-velvet-panel);">
+        <div class="deco-corners"></div>
+        <h1 class="text-gradient-gold">2026 FCU Beaux Arts Ball</h1>
+        <p class="text-gold" style="font-size: 1.5rem; font-weight: 600; letter-spacing: 2px; margin-top: 10px; font-family: var(--font-display);">
+          Architecture Costume Show Scoring System
+        </p>
+      </div>
+    </header>
+
+    <!-- Art Deco Divider -->
+    <div class="deco-divider">
+      <span class="deco-divider-icon">♦ ♦ ♦</span>
+    </div>
+
+    <!-- Portal Selection Grid -->
+    <main class="portal-grid">
+      
+      <!-- Card 1: Projector View -->
+      <section class="portal-card" id="card-projector">
+        <div class="deco-corners"></div>
+        <div class="portal-card-icon">
+          <i class="fa-solid fa-display"></i>
+        </div>
+        <h2 class="portal-card-title">投影展示端<br><span style="font-size: 0.9rem; font-family: var(--font-sans); color: var(--color-gray-light);">Projector View</span></h2>
+        <p class="portal-card-desc">
+          部署於教室投影大螢幕。常駐白色簡約日系風格背景，負責動態展示當前表演組別、評審即時投票進度燈號、結算巨型得分率卡片，以及 Kahoot 風格之 3D 領獎台與動態排行榜。
+        </p>
+        <a href="projector.html" target="_blank" class="btn-gold">打開大螢幕投影</a>
+      </section>
+
+      <!-- Card 2: Judge Mobile View -->
+      <section class="portal-card" id="card-judge">
+        <div class="deco-corners"></div>
+        <div class="portal-card-icon">
+          <i class="fa-solid fa-mobile-screen-button"></i>
+        </div>
+        <h2 class="portal-card-title">評審與小組端<br><span style="font-size: 0.9rem; font-family: var(--font-sans); color: var(--color-gray-light);">Judge Mobile View</span></h2>
+        <p class="portal-card-desc">
+          行動端優先設計。供 5 位專業評審委員與 24 個學生隊伍進行即時評估。包含 PIN 驗證登入、同儕互評迴避鎖定、二階段高對比大型按鈕評分，以及連線斷線即時滿版遮罩保護。
+        </p>
+        <a href="judge.html" class="btn-gold">進入行動評分端</a>
+      </section>
+
+      <!-- Card 3: Admin Panel -->
+      <section class="portal-card" id="card-admin">
+        <div class="deco-corners"></div>
+        <div class="portal-card-icon">
+          <i class="fa-solid fa-user-gear"></i>
+        </div>
+        <h2 class="portal-card-title">中樞控制端<br><span style="font-size: 0.9rem; font-family: var(--font-sans); color: var(--color-gray-light);">Admin Panel</span></h2>
+        <p class="portal-card-desc">
+          活動主持人或控台人員專用。主掌賽程進度、隨意切換與跳過表演組別、即時監控 29 端連線與評分狀態、強制中斷與結算、重置單一給分，以及一鍵觸發 Google Sheets 名單拉取與跨週備份。
+        </p>
+        <a href="admin.html" target="_blank" class="btn-gold">進入中樞主控台</a>
+      </section>
+
+    </main>
+
+    <!-- Portal Footer -->
+    <footer style="margin-top: 60px; text-align: center; font-size: 0.9rem; color: var(--color-gray-muted); letter-spacing: 1px;">
+      <p>&copy; 2026 逢甲大學建築學系活動小組. Developed by Antigravity under Wabi-Sabi license.</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>

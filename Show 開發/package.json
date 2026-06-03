@@ -1,0 +1,13 @@
+{
+  "name": "architecture-costume-show-scoring",
+  "version": "2.1.0",
+  "description": "Premium 1931 Art Deco Architecture Costume Show Three-way Scoring System",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y http-server . -p 3000"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "author": "Antigravity",
+  "license": "ISC"
+}

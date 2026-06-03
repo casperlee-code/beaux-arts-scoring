@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026 FCU Beaux Arts Ball - Judge Scoring Terminal</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Consolidated Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="judge-body art-deco-bg">
+
+  <!-- 1. CONNECTION ERROR OVERLAY (Offline Shield) -->
+  <div class="fullscreen-blocker" id="offline-shield" style="display: none;">
+    <div class="blocker-icon text-gold">
+      <i class="fa-solid fa-wifi-slash"></i>
+    </div>
+    <h2 class="blocker-title">網路連線中斷</h2>
+    <p class="blocker-desc">
+      系統偵測到與 Firestore 雲端資料庫的連線中斷，正在嘗試重新建立連線，請不要關閉此網頁。
+    </p>
+    <button class="btn-outline-gold" style="margin-top:20px;" onclick="window.location.reload()">手動重新整理</button>
+  </div>
+
+  <!-- 2. PEER LOCKOUT OVERLAY (Own Team Showing) -->
+  <div class="fullscreen-blocker" id="peer-lockout-shield" style="display: none;">
+    <div class="blocker-icon text-gold">
+      <i class="fa-solid fa-user-slash"></i>
+    </div>
+    <h2 class="blocker-title">同儕互評迴避鎖定</h2>
+    <p class="blocker-desc">
+      當前登場展演組別為<strong>您所屬的小組</strong>。<br>
+      為求競賽公平，本回合您無需進行評分。系統將自動從計分分母中扣除您的一票。
+    </p>
+  </div>
+
+  <!-- 3. STATE LOCKOUT OVERLAY (Waiting for Admin / Voted) -->
+  <div class="fullscreen-blocker" id="state-lockout-shield" style="display: none;">
+    <div class="blocker-icon text-gold" id="state-lockout-icon">
+      <i class="fa-solid fa-hourglass-half"></i>
+    </div>
+    <h2 class="blocker-title" id="state-lockout-title">請等候主持人指示</h2>
+    <p class="blocker-desc" id="state-lockout-desc">
+      準備狀態中。請靜候台上同學登台準備，主持人開啟評分後系統將自動解鎖。
+    </p>
+  </div>
+
+  <!-- 4. PIN LOGIN SCREEN (Displays if unauthenticated) -->
+  <div class="fullscreen-blocker" id="login-container">
+    <div class="login-card">
+      <div class="deco-corners"></div>
+      <div class="login-logo">
+        <i class="fa-solid fa-key text-gradient-gold"></i>
+      </div>
+      <h2 class="login-title text-gradient-gold">BEAUX-ARTS BALL</h2>
+      <p class="text-gold" style="font-size: 0.9rem; margin-bottom: 20px; letter-spacing: 1px;">
+        建築裝扮秀 • 三端評分系統登入
+      </p>
+      
+      <div class="form-group">
+        <label class="form-label" for="pin-input">輸入評審或小組 PIN 碼</label>
+        <input type="password" id="pin-input" class="input-field" placeholder="••••" maxlength="4" autocomplete="off">
+        <p id="login-error-msg" style="color: var(--color-danger); font-size: 0.85rem; margin-top: 6px; display: none;">
+          <i class="fa-solid fa-triangle-exclamation"></i> 無效的 PIN 碼，請重試。
+        </p>
+      </div>
+      
+      <button class="btn-gold" id="login-submit-btn" style="width: 100%;">驗證身分</button>
+    </div>
+  </div>
+
+  <!-- 5. MAIN SCORING UI (Authenticated Panel) -->
+  <div id="scoring-container" style="display: none;">
+    
+    <!-- Top Navigation sticky bar -->
+    <nav class="judge-navbar">
+      <div>
+        <div class="judge-nav-title text-gold" id="user-display-name">載入中...</div>
+        <div style="font-size: 0.75rem; color: var(--color-gray-light);" id="user-display-type">載入中...</div>
+      </div>
+      <div class="conn-status-indicator">
+        <div class="conn-dot online" id="connection-dot"></div>
+        <span class="text-gold" id="connection-text">已連線</span>
+        <button onclick="logout()" style="background:none; border:none; color:var(--color-gray-muted); margin-left:10px; cursor:pointer;" title="登出"><i class="fa-solid fa-power-off"></i></button>
+      </div>
+    </nav>
+
+    <!-- Content Panel Body -->
+    <main class="judge-content-wrapper">
+      
+      <!-- Current Performance Header Card -->
+      <section class="current-performance-card">
+        <span class="perf-team-id" id="active-team-badge">TEAM 01</span>
+        <h2 class="perf-archi-title text-gradient-gold" id="active-architecture-name">巴塞隆納聖家堂</h2>
+        <p class="perf-team-name text-gold" id="active-team-name">第 01 組</p>
+      </section>
+
+      <!-- Scoring Inputs -->
+      <form id="scoring-form" onsubmit="event.preventDefault()">
+        
+        <!-- Score Section 1: Coherency -->
+        <section class="score-section-card" id="card-coherency">
+          <div class="score-section-header">
+            <h3 class="score-sec-title">1. 與建築物契合度 (Coherency)</h3>
+            <p class="score-sec-desc">服裝與裝扮細節對於經典建築歷史特徵的考據性與詮釋度。</p>
+          </div>
+          <div class="score-button-group">
+            <button type="button" class="score-btn" data-category="coherency" data-value="10">
+              <span class="score-btn-val">10</span><span class="score-btn-label">HP</span>
+            </button>
+            <button type="button" class="score-btn" data-category="coherency" data-value="8">
+              <span class="score-btn-val">8</span><span class="score-btn-label">P+</span>
+            </button>
+            <button type="button" class="score-btn" data-category="coherency" data-value="6">
+              <span class="score-btn-val">6</span><span class="score-btn-label">P</span>
+            </button>
+            <button type="button" class="score-btn" data-category="coherency" data-value="4">
+              <span class="score-btn-val">4</span><span class="score-btn-label">LP</span>
+            </button>
+            <button type="button" class="score-btn" data-category="coherency" data-value="2">
+              <span class="score-btn-val">2</span><span class="score-btn-label">F</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Score Section 2: Communication -->
+        <section class="score-section-card" id="card-communication">
+          <div class="score-section-header">
+            <h3 class="score-sec-title">2. 傳達與溝通能力 (Communication)</h3>
+            <p class="score-sec-desc">走秀表演的主題渲染力、台風、與肢體語言表達建築美感的能力。</p>
+          </div>
+          <div class="score-button-group">
+            <button type="button" class="score-btn" data-category="communication" data-value="10">
+              <span class="score-btn-val">10</span><span class="score-btn-label">HP</span>
+            </button>
+            <button type="button" class="score-btn" data-category="communication" data-value="8">
+              <span class="score-btn-val">8</span><span class="score-btn-label">P+</span>
+            </button>
+            <button type="button" class="score-btn" data-category="communication" data-value="6">
+              <span class="score-btn-val">6</span><span class="score-btn-label">P</span>
+            </button>
+            <button type="button" class="score-btn" data-category="communication" data-value="4">
+              <span class="score-btn-val">4</span><span class="score-btn-label">LP</span>
+            </button>
+            <button type="button" class="score-btn" data-category="communication" data-value="2">
+              <span class="score-btn-val">2</span><span class="score-btn-label">F</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Score Section 3: Originality -->
+        <section class="score-section-card" id="card-originality">
+          <div class="score-section-header">
+            <h3 class="score-sec-title">3. 獨創性與工藝精神 (Originality)</h3>
+            <p class="score-sec-desc">變裝材料選擇的創意度、手作結構難度與精緻的細部工藝。</p>
+          </div>
+          <div class="score-button-group">
+            <button type="button" class="score-btn" data-category="originality" data-value="10">
+              <span class="score-btn-val">10</span><span class="score-btn-label">HP</span>
+            </button>
+            <button type="button" class="score-btn" data-category="originality" data-value="8">
+              <span class="score-btn-val">8</span><span class="score-btn-label">P+</span>
+            </button>
+            <button type="button" class="score-btn" data-category="originality" data-value="6">
+              <span class="score-btn-val">6</span><span class="score-btn-label">P</span>
+            </button>
+            <button type="button" class="score-btn" data-category="originality" data-value="4">
+              <span class="score-btn-val">4</span><span class="score-btn-label">LP</span>
+            </button>
+            <button type="button" class="score-btn" data-category="originality" data-value="2">
+              <span class="score-btn-val">2</span><span class="score-btn-label">F</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Action Submission -->
+        <div class="judge-submit-area">
+          <button type="button" class="btn-gold judge-submit-btn" id="submit-trigger-btn" disabled>
+            <i class="fa-solid fa-paper-plane"></i> 提交評分
+          </button>
+        </div>
+
+      </form>
+    </main>
+
+  </div>
+
+  <!-- 6. DOUBLE-CHECK SUBMISSION MODAL -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-card">
+      <div class="deco-corners"></div>
+      <h3 class="modal-title">確認提交本次評分</h3>
+      <div class="modal-body">
+        <p>您確定的評分結果如下，<strong>送出後將鎖定且無法進行任何修改</strong>：</p>
+        <div class="score-summary-list">
+          <div class="score-summary-item">
+            <span>1. 與建築物契合度</span>
+            <strong class="text-gold" id="summary-coherency">0 分</strong>
+          </div>
+          <div class="score-summary-item">
+            <span>2. 傳達與溝通能力</span>
+            <strong class="text-gold" id="summary-communication">0 分</strong>
+          </div>
+          <div class="score-summary-item">
+            <span>3. 獨創性與工藝精神</span>
+            <strong class="text-gold" id="summary-originality">0 分</strong>
+          </div>
+          <div class="score-summary-item" style="border-top:1px solid var(--color-velvet-light); padding-top:10px; margin-top:10px; font-weight:700;">
+            <span>合計總分</span>
+            <strong class="text-gradient-gold" id="summary-total" style="font-size:1.2rem;">0 分 (滿分 30)</strong>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-dark" id="modal-cancel-btn">返回修改</button>
+        <button class="btn-gold" id="modal-confirm-btn">確定送出</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Realtime App Logic Scripts -->
+  <script src="app.js"></script>
+  <script>
+    // --- Global user variables ---
+    let currentUser = null;
+    let globalState = {};
+    let roster = [];
+    let votes = [];
+    
+    // Score selection state cache
+    const selectedScores = {
+      coherency: null,
+      communication: null,
+      originality: null
+    };
+
+    // --- Page Initialization Check ---
+    window.addEventListener('load', () => {
+      const savedToken = localStorage.getItem('judge_token');
+      if (savedToken && VOTER_TOKENS[savedToken]) {
+        currentUser = VOTER_TOKENS[savedToken];
+        // Mark connected voter state
+        syncManager.updateVoterConnection(currentUser.id, true);
+        
+        showScoringPanel();
+      } else {
+        // Show login
+        document.getElementById('login-container').style.display = '';
+        document.getElementById('scoring-container').style.display = 'none';
+      }
+    });
+
+    // Handle unload to mark disconnect in Firestore / LocalSync live grid
+    window.addEventListener('beforeunload', () => {
+      if (currentUser) {
+        syncManager.updateVoterConnection(currentUser.id, false);
+      }
+    });
+
+    // --- PIN verification login handler ---
+    const pinInput = document.getElementById('pin-input');
+    const submitBtn = document.getElementById('login-submit-btn');
+    const errorMsg = document.getElementById('login-error-msg');
+
+    submitBtn.addEventListener('click', attemptLogin);
+    pinInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') attemptLogin();
+    });
+
+    function attemptLogin() {
+      const pin = pinInput.value.trim();
+      if (VOTER_TOKENS[pin]) {
+        currentUser = VOTER_TOKENS[pin];
+        localStorage.setItem('judge_token', pin);
+        
+        // Notify database connectivity status
+        syncManager.updateVoterConnection(currentUser.id, true);
+        
+        errorMsg.style.display = 'none';
+        pinInput.value = '';
+        showScoringPanel();
+      } else {
+        errorMsg.style.display = '';
+        pinInput.value = '';
+        pinInput.focus();
+      }
+    }
+
+    function logout() {
+      if (currentUser) {
+        syncManager.updateVoterConnection(currentUser.id, false);
+      }
+      localStorage.removeItem('judge_token');
+      currentUser = null;
+      document.getElementById('login-container').style.display = '';
+      document.getElementById('scoring-container').style.display = 'none';
+      document.getElementById('peer-lockout-shield').style.display = 'none';
+      document.getElementById('state-lockout-shield').style.display = 'none';
+    }
+
+    // Switch panels to display scoring form
+    function showScoringPanel() {
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('scoring-container').style.display = '';
+      
+      document.getElementById('user-display-name').innerText = currentUser.name;
+      document.getElementById('user-display-type').innerText = currentUser.type === 'professional' ? "專業評審委員" : `第 ${currentUser.teamId} 組參賽代表`;
+
+      // Bind data subscription to synchronizer
+      syncManager.subscribe(onDataSyncUpdate);
+      syncManager.onOfflineStateChange(onOfflineStateChanged);
+    }
+
+    // --- Handle offline UI shield ---
+    function onOfflineStateChanged(isOffline) {
+      const shield = document.getElementById('offline-shield');
+      const dot = document.getElementById('connection-dot');
+      const text = document.getElementById('connection-text');
+      
+      if (isOffline) {
+        shield.style.display = '';
+        if (dot) {
+          dot.className = 'conn-dot offline';
+          text.innerText = '斷線';
+        }
+      } else {
+        shield.style.display = 'none';
+        if (dot) {
+          dot.className = 'conn-dot online';
+          text.innerText = '已連線';
+        }
+      }
+    }
+
+    // --- Subscription Listener ---
+    function onDataSyncUpdate(type, data) {
+      if (type === 'global_state') {
+        globalState = data;
+        onStateOrTargetChanged();
+      } else if (type === 'roster') {
+        roster = data;
+        updateActiveTeamCard();
+      } else if (type === 'votes') {
+        votes = data;
+        onStateOrTargetChanged();
+      }
+    }
+
+    // --- Check security lockout boundaries & constraints ---
+    function onStateOrTargetChanged() {
+      if (!currentUser) return;
+
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      
+      const peerLockoutShield = document.getElementById('peer-lockout-shield');
+      const stateLockoutShield = document.getElementById('state-lockout-shield');
+
+      // 1. Peer-lockout mechanism
+      const isPerformingSelf = (currentUser.type === 'peer' && currentUser.teamId === currentTeamId);
+      if (isPerformingSelf) {
+        peerLockoutShield.style.display = '';
+        stateLockoutShield.style.display = 'none';
+        return;
+      } else {
+        peerLockoutShield.style.display = 'none';
+      }
+
+      // 2. View-state lockout constraints
+      if (globalState.view !== 'scoring') {
+        stateLockoutShield.style.display = '';
+        
+        const icon = document.getElementById('state-lockout-icon');
+        const title = document.getElementById('state-lockout-title');
+        const desc = document.getElementById('state-lockout-desc');
+        
+        if (globalState.view === 'prep') {
+          icon.innerHTML = '<i class="fa-solid fa-people-group"></i>';
+          title.innerText = '組別準備中';
+          desc.innerText = '下一組同學正登台準備，主持人開啟評分後系統將自動解鎖，請稍候。';
+        } else if (globalState.view === 'settlement') {
+          icon.innerHTML = '<i class="fa-solid fa-square-poll-vertical"></i>';
+          title.innerText = '評分統計結算中';
+          desc.innerText = '本回合評分收集完畢。中樞系統正在統計結算最終得分率，請等候下一回合開啟。';
+        } else if (globalState.view === 'podium') {
+          icon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+          title.innerText = '賽事頒獎階段';
+          desc.innerText = '整場 Costume Show 圓滿結束！大螢幕正在揭曉最終優勝者。';
+        } else {
+          icon.innerHTML = '<i class="fa-solid fa-hourglass-half"></i>';
+          title.innerText = '系統待命中';
+          desc.innerText = '西洋建築史 Costume Show 即將開始，請稍候主持人開啟計分程序。';
+        }
+        return;
+      }
+
+      // 3. Double-vote avoidance locking
+      const voteDocId = `team_${String(currentTeamId).padStart(2, '0')}_${currentUser.id}`;
+      const hasVotedThisRound = votes.some(v => v.id === voteDocId);
+      
+      if (hasVotedThisRound) {
+        stateLockoutShield.style.display = '';
+        
+        const icon = document.getElementById('state-lockout-icon');
+        const title = document.getElementById('state-lockout-title');
+        const desc = document.getElementById('state-lockout-desc');
+        
+        icon.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        title.innerText = '評分提交成功';
+        desc.innerText = '您的給分已成功送入雲端！請欣賞台上展演，靜待下一位表演者登場。';
+        return;
+      }
+
+      // If all boundaries clear, unlock screen
+      stateLockoutShield.style.display = 'none';
+      updateActiveTeamCard();
+    }
+
+    // Update active performance details
+    function updateActiveTeamCard() {
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const team = roster.find(t => t.teamId === currentTeamId);
+      
+      if (!team) return;
+
+      document.getElementById('active-team-badge').innerText = `TEAM ${String(team.teamId).padStart(2, '0')}`;
+      document.getElementById('active-architecture-name').innerText = team.architecture;
+      document.getElementById('active-team-name').innerText = `第 ${String(team.teamId).padStart(2, '0')} 組`;
+    }
+
+    // --- Tactile Score Button Binding ---
+    const scoreBtns = document.querySelectorAll('.score-btn');
+    const submitTriggerBtn = document.getElementById('submit-trigger-btn');
+
+    scoreBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const category = btn.getAttribute('data-category');
+        const value = parseInt(btn.getAttribute('data-value'));
+
+        // Reset sibling buttons in same category
+        document.querySelectorAll(`.score-btn[data-category="${category}"]`).forEach(b => {
+          b.classList.remove('selected');
+        });
+
+        // Add selected to this button
+        btn.classList.add('selected');
+        selectedScores[category] = value;
+
+        // Highlight card completion border
+        document.getElementById(`card-${category}`).classList.add('completed');
+
+        // Check if all 3 scores are filled to unlock trigger
+        if (selectedScores.coherency !== null && 
+            selectedScores.communication !== null && 
+            selectedScores.originality !== null) {
+          submitTriggerBtn.removeAttribute('disabled');
+        }
+      });
+    });
+
+    // --- Double Confirm Modal Handlers ---
+    const modal = document.getElementById('confirm-modal');
+    const cancelBtn = document.getElementById('modal-cancel-btn');
+    const confirmBtn = document.getElementById('modal-confirm-btn');
+
+    submitTriggerBtn.addEventListener('click', () => {
+      // Inject selected numbers to summary
+      document.getElementById('summary-coherency').innerText = `${selectedScores.coherency} 分 (滿分10)`;
+      document.getElementById('summary-communication').innerText = `${selectedScores.communication} 分 (滿分10)`;
+      document.getElementById('summary-originality').innerText = `${selectedScores.originality} 分 (滿分10)`;
+      
+      const total = selectedScores.coherency + selectedScores.communication + selectedScores.originality;
+      document.getElementById('summary-total').innerText = `${total} 分 (滿分 30)`;
+
+      modal.classList.add('show');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      modal.classList.remove('show');
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      modal.classList.remove('show');
+      
+      const currentTeamId = parseInt(globalState.current_team_id || 1);
+      const voteDocId = `team_${String(currentTeamId).padStart(2, '0')}_${currentUser.id}`;
+
+      const voteData = {
+        target_team_id: currentTeamId,
+        judge_token: currentUser.id,
+        score_coherency: selectedScores.coherency,
+        score_communication: selectedScores.communication,
+        score_originality: selectedScores.originality
+      };
+
+      // Write to database sync engine
+      syncManager.submitVote(voteDocId, voteData);
+
+      // Reset selection form states for next team round
+      selectedScores.coherency = null;
+      selectedScores.communication = null;
+      selectedScores.originality = null;
+      
+      document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('.score-section-card').forEach(c => c.classList.remove('completed'));
+      submitTriggerBtn.setAttribute('disabled', 'true');
+    });
+  </script>
+</body>
+</html>
