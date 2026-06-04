@@ -516,7 +516,7 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
 
   teamVotes.forEach(v => {
     // Map token details
-    const voterId = v.judge_token || v.id.replace(/^team_\d{2}_/, '');
+    const voterId = v.judge_token || (v.id ? v.id.replace(/^team_\d{2}_/, '') : '');
     const voter = Object.values(VOTER_TOKENS).find(t => t.id === voterId);
 
     // Safety check: skip if peer evaluation tries to vote for themselves (should be blocked by UI but double check here)
