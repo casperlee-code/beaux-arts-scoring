@@ -75,8 +75,16 @@
               <span class="text-gold"><i class="fa-solid fa-square-poll-vertical"></i> 現場評分收集進度</span>
               <span id="voting-progress-text" class="text-gold">0 / 29 (0%)</span>
             </div>
-            <div class="voting-progress-bar-bg">
+            <div class="voting-progress-bar-bg" style="margin-bottom: 12px;">
               <div class="voting-progress-bar-fill" id="voting-progress-bar"></div>
+            </div>
+            
+            <div class="voting-progress-header">
+              <span class="text-gold"><i class="fa-solid fa-percent"></i> 當前實時得分率</span>
+              <span id="voting-score-text" class="text-gold" style="font-weight: 700;">0.00%</span>
+            </div>
+            <div class="voting-progress-bar-bg">
+              <div class="voting-progress-bar-fill" id="voting-score-bar" style="background: linear-gradient(90deg, var(--color-gold-bright), var(--color-gold-base));"></div>
             </div>
           </div>
 
@@ -348,6 +356,13 @@
       
       const progressBar = document.getElementById('voting-progress-bar');
       if (progressBar) progressBar.style.width = `${progressPercent}%`;
+
+      // Update score percentage details
+      const scoreText = document.getElementById('voting-score-text');
+      if (scoreText) scoreText.innerText = `${scoreObj.scorePercent.toFixed(2)}%`;
+
+      const scoreBar = document.getElementById('voting-score-bar');
+      if (scoreBar) scoreBar.style.width = `${scoreObj.scorePercent}%`;
 
       // Render 29 voter connection bulbs
       const bulbsGrid = document.getElementById('voting-bulbs-grid');
