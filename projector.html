@@ -2,6 +2,25 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
+  <script>
+    window.addEventListener('error', function(e) {
+      var div = document.createElement('div');
+      div.style.position = 'fixed';
+      div.style.top = '0';
+      div.style.left = '0';
+      div.style.width = '100%';
+      div.style.zIndex = '999999';
+      div.style.background = 'rgba(255, 0, 0, 0.95)';
+      div.style.color = 'white';
+      div.style.padding = '20px';
+      div.style.fontFamily = 'monospace';
+      div.style.fontSize = '14px';
+      div.style.lineHeight = '1.5';
+      div.style.whiteSpace = 'pre-wrap';
+      div.innerHTML = '<strong>JS Error:</strong> ' + e.message + '<br><strong>File:</strong> ' + e.filename + '<br><strong>Line:</strong> ' + e.lineno + ':' + e.colno + '<br><strong>Stack:</strong> ' + (e.error ? e.error.stack : 'N/A');
+      document.body.appendChild(div);
+    });
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>2026 FCU Beaux Arts Ball - Architecture Costume Show Projector</title>
   
