@@ -48,7 +48,8 @@ const VOTER_TOKENS = {
   '2421': { id: 'team_21', type: 'peer', name: '第21組同儕評審 (T21)', teamId: 21 },
   '2422': { id: 'team_22', type: 'peer', name: '第22組同儕評審 (T22)', teamId: 22 },
   '2423': { id: 'team_23', type: 'peer', name: '第23組同儕評審 (T23)', teamId: 23 },
-  '2424': { id: 'team_24', type: 'peer', name: '第24組同儕評審 (T24)', teamId: 24 }
+  '2424': { id: 'team_24', type: 'peer', name: '第24組同儕評審 (T24)', teamId: 24 },
+  '2425': { id: 'team_25', type: 'peer', name: '第25組同儕評審 (T25)', teamId: 25 }
 };
 
 // --- Classical Architectures Default Roster ---
@@ -76,7 +77,8 @@ const DEFAULT_ROSTER = [
   { teamId: 21, id: 'team_21', team_name: '東京聖瑪利亞組', architecture: '東京聖瑪利亞大教堂 (St. Mary\'s Cathedral)', members: ['馬嘉豪', '徐瑞玲'], total_percentage: 0.00 },
   { teamId: 22, id: 'team_22', team_name: '羅浮宮金字塔組', architecture: '羅浮宮金字塔 (Louvre Pyramid)', members: ['傅家駿', '葉子瑄'], total_percentage: 0.00 },
   { teamId: 23, id: 'team_23', team_name: '古根漢畢爾包組', architecture: '畢爾包古根漢美術館 (Guggenheim Bilbao)', members: ['魏哲賢', '戴巧筑'], total_percentage: 0.00 },
-  { teamId: 24, id: 'team_24', team_name: '聖保羅組', architecture: '倫敦聖保羅大教堂 (St. Paul\'s Cathedral)', members: ['施韋廷', '孫若晴'], total_percentage: 0.00 }
+  { teamId: 24, id: 'team_24', team_name: '聖保羅組', architecture: '倫敦聖保羅大教堂 (St. Paul\'s Cathedral)', members: ['施韋廷', '孫若晴'], total_percentage: 0.00 },
+  { teamId: 25, id: 'team_25', team_name: '第25組', architecture: '未指定建築', members: [], total_percentage: 0.00 }
 ];
 
 // --- Dual-Mode State Synchronizer Class ---
@@ -126,7 +128,7 @@ class DualModeSynchronizer {
       const initialGlobal = {
         view: 'standby',
         current_team_id: 1,
-        active_judges_count: 29 // 24 teams + 5 judges
+        active_judges_count: 30 // 25 teams + 5 judges
       };
       localStorage.setItem('global_state', JSON.stringify(initialGlobal));
     }
@@ -302,7 +304,7 @@ class DualModeSynchronizer {
 
   // 1. Global State Controls
   getGlobalState() {
-    return JSON.parse(localStorage.getItem('global_state')) || { view: 'standby', current_team_id: 1, active_judges_count: 29 };
+    return JSON.parse(localStorage.getItem('global_state')) || { view: 'standby', current_team_id: 1, active_judges_count: 30 };
   }
 
   updateGlobalState(fields) {
@@ -491,8 +493,8 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
   const teamVotes = votesList.filter(v => parseInt(v.target_team_id) === parseInt(targetTeamId));
 
   // Determine active judges base (denominator)
-  // Base attendees = 24 peer teams + 5 pro judges = 29 maximum voters
-  let maxVotersCount = globalState.active_judges_count || 29;
+  // Base attendees = 25 peer teams + 5 pro judges = 30 maximum voters
+  let maxVotersCount = globalState.active_judges_count || 30;
 
   // Exclude absent groups: check all voters and reduce if flagged absent/unconnected in list
   // If the voter card connection is set to off or un-checked by the coordinator, deduct

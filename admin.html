@@ -45,7 +45,7 @@
             <i class="fa-solid fa-sliders"></i> 控台主面板
           </button>
           <button class="sidebar-nav-btn" onclick="switchAdminTab('roster')">
-            <i class="fa-solid fa-users-viewfinder"></i> 參賽隊伍名單 (<span id="sidebar-roster-count">24</span>)
+            <i class="fa-solid fa-users-viewfinder"></i> 參賽隊伍名單 (<span id="sidebar-roster-count">25</span>)
           </button>
           <button class="sidebar-nav-btn" onclick="switchAdminTab('sheets')">
             <i class="fa-solid fa-file-excel"></i> 雲端試算表同步
@@ -121,7 +121,7 @@
                 <button class="btn-outline-gold" onclick="shiftActiveTeam(-1)"><i class="fa-solid fa-arrow-left"></i> 上一組</button>
                 
                 <select class="dropdown-select" id="active-team-selector" onchange="onAdminTeamSelected()">
-                  <!-- Dynamically filled with 24 teams -->
+                  <!-- Dynamically filled with 25 teams -->
                 </select>
                 
                 <button class="btn-outline-gold" onclick="shiftActiveTeam(1)">下一組 <i class="fa-solid fa-arrow-right"></i></button>
@@ -140,13 +140,13 @@
             <!-- Voters grid Monitor -->
             <div class="admin-card">
               <div class="admin-card-header" style="margin-bottom:15px;">
-                <h3 class="admin-card-title"><i class="fa-solid fa-network-wired"></i> 3. 現場 29 投票端連線與給分狀態</h3>
+                <h3 class="admin-card-title"><i class="fa-solid fa-network-wired"></i> 3. 現場 30 投票端連線與給分狀態</h3>
                 <div>
                   <button class="btn-outline-gold" style="font-size: 0.75rem; padding: 4px 10px;" onclick="syncManager.clearRoundVotes()"><i class="fa-solid fa-trash-can"></i> 清除所有人本輪給分</button>
                 </div>
               </div>
               
-              <!-- 29 connected card grid -->
+              <!-- 30 connected card grid -->
               <div class="connections-grid" id="admin-voters-grid">
                 <!-- Injected dynamically -->
               </div>
@@ -211,7 +211,7 @@
         <header class="admin-header">
           <div class="admin-header-title">
             <h2>參賽名單與歷史累計總分</h2>
-            <p>管理與覆核 24 組參賽隊伍、裝扮建築物與得分率統計</p>
+            <p>管理與覆核 25 組參賽隊伍、裝扮建築物與得分率統計</p>
           </div>
           <button class="btn-gold" onclick="resetAllRosterPercentages()"><i class="fa-solid fa-trash-arrow-up"></i> 一鍵清除所有累積總分</button>
         </header>
@@ -285,8 +285,8 @@
               </div>
               <div style="font-size:0.85rem; line-height:1.6; display:flex; flex-direction:column; gap:12px;">
                 <p><strong>第一步 (初始化)：</strong>點擊「初始化活動 Sheet」，系統將會建立並回傳專屬 Google Sheet 連結。</p>
-                <p><strong>第二步 (拉取名單)：</strong>您可在 Sheet 的 Roster 分頁中填入 24 組的組名、變裝建築與組員姓名。點擊「拉取名單 (Fetch)」，一鍵同步至 Firestore。</p>
-                <p><strong>第三步 (跨週儲存)：</strong>活動分為兩週進行，當第一週走秀結束後，點擊「跨週儲存 (SAVE)」，將目前 1~24 組的所有分數、累計得分率自動回存寫入備份，確保資料安全無虞。</p>
+                <p><strong>第二步 (拉取名單)：</strong>您可在 Sheet 的 Roster 分頁中填入 25 組的組名、變裝建築與組員姓名。點擊「拉取名單 (Fetch)」，一鍵同步至 Firestore。</p>
+                <p><strong>第三步 (跨週儲存)：</strong>活動分為兩週進行，當第一週走秀結束後，點擊「跨週儲存 (SAVE)」，將目前 1~25 組的所有分數、累計得分率自動回存寫入備份，確保資料安全無虞。</p>
               </div>
             </div>
           </div>
@@ -614,7 +614,7 @@
 
       container.innerHTML = `
         <div style="display:flex; justify-content:space-between;"><span>登場組別：</span><strong class="text-gold">T${String(d.team_id).padStart(2, '0')} ${d.architecture}</strong></div>
-        <div style="display:flex; justify-content:space-between;"><span>有效選票分母：</span><strong class="text-gold">${d.voters_denominator} 票 (總額 29 票)</strong></div>
+        <div style="display:flex; justify-content:space-between;"><span>有效選票分母：</span><strong class="text-gold">${d.voters_denominator} 票 (總額 30 票)</strong></div>
         <div style="display:flex; justify-content:space-between;"><span>同儕迴避扣除：</span><strong class="text-gold">${d.peer_lockout} 票</strong></div>
         <div style="display:flex; justify-content:space-between;"><span>已收集選票：</span><strong class="text-gold">${Object.keys(d.submissions).length} / ${d.voters_denominator} (${progressPercent}%)</strong></div>
         <div style="display:flex; justify-content:space-between; margin-top:8px; border-top:1px solid var(--color-velvet-light); padding-top:8px;"><span>目前分子總分：</span><strong class="text-gold">${d.actual_sum} 分</strong></div>
@@ -677,8 +677,8 @@
       let currentId = parseInt(globalState.current_team_id || 1);
       currentId += direction;
 
-      if (currentId < 1) currentId = 24;
-      if (currentId > 24) currentId = 1;
+      if (currentId < 1) currentId = 25;
+      if (currentId > 25) currentId = 1;
 
       syncManager.updateGlobalState({ current_team_id: currentId });
       syncManager.clearRoundVotes();
@@ -691,7 +691,7 @@
     }
 
     function triggerResetEntireShow() {
-      if (confirm("⚠️ 極重要警告：您確定要「一鍵重置整場比賽」嗎？\n這將會：\n1. 將所有 24 組參賽隊伍的歷史得分率全部清空歸零。\n2. 清空資料庫中所有暫存的投票紀錄。\n3. 自動將登場組別跳回【第 01 組】。\n4. 自動將全域舞台畫面切回【待命狀態】。\n\n（手動編輯過的經典建築名稱將會完整保留，不會被刪除！）")) {
+      if (confirm("⚠️ 極重要警告：您確定要「一鍵重置整場比賽」嗎？\n這將會：\n1. 將所有 25 組參賽隊伍的歷史得分率全部清空歸零。\n2. 清空資料庫中所有暫存的投票紀錄。\n3. 自動將登場組別跳回【第 01 組】。\n4. 自動將全域舞台畫面切回【待命狀態】。\n\n（手動編輯過的經典建築名稱將會完整保留，不會被刪除！）")) {
         syncManager.resetEntireShow();
         alert("整場比賽已成功重置！");
       }
@@ -754,7 +754,7 @@
     }
 
     function resetAllRosterPercentages() {
-      if (confirm("⚠️ 警告：您確定要「一鍵清空所有參賽組別的歷史累積得分率」嗎？此操作將會把 1 至 24 組的所有累計分數全部歸零，請謹慎操作！")) {
+      if (confirm("⚠️ 警告：您確定要「一鍵清空所有參賽組別的歷史累積得分率」嗎？此操作將會把 1 至 25 組的所有累計分數全部歸零，請謹慎操作！")) {
         roster.forEach(team => {
           syncManager.updateRosterTeamScore(team.id, 0.00);
         });
@@ -851,7 +851,7 @@
       showCloudStatus(false, "雲端活動試算表建立成功", `
         已成功在主辦方的 Google Drive 中建立一個全新的 Excel 試算表。<br>
         <strong>試算表連結：</strong><a href="https://docs.google.com/spreadsheets/d/mock_beaux_arts_sheet_id/edit" target="_blank" style="color:var(--color-gold-bright); text-decoration:underline;">點擊打開雲端試算表</a><br>
-        請在此試算表的 <code>Roster</code> 工作表中填入參賽的 24 組名單，然後執行「拉取名單」即可同步。
+        請在此試算表的 <code>Roster</code> 工作表中填入參賽的 25 組名單，然後執行「拉取名單」即可同步。
       `);
     }
 
@@ -870,7 +870,7 @@
       }
 
       showCloudStatus(false, "雲端名單拉取同步完成", `
-        已從 Google Sheet 成功讀取 24 組參賽名單並寫入 Firestore 中。<br>
+        已從 Google Sheet 成功讀取 25 組參賽名單並寫入 Firestore 中。<br>
         系統名單已實時更新！共計載入 <strong>${roster.length} 組</strong> 表演隊伍。
       `);
     }
@@ -882,7 +882,7 @@
       const res = await callAppsScriptApi('save_scoreboard', { roster: roster });
       
       showCloudStatus(false, "數據跨週備份存檔成功", `
-        已成功將目前 Firestore 內的 24 組表演之所有累積得分率與分數明細，備份寫入 Google Sheet 中。<br>
+        已成功將目前 Firestore 內的 25 組表演之所有累積得分率與分數明細，備份寫入 Google Sheet 中。<br>
         已在該試算表中建立全新的 <code>Scoreboard_Backup</code> 工作表，確保賽事跨週覆核資料絕對不遺失！
       `);
     }
