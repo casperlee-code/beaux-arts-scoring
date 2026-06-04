@@ -848,11 +848,18 @@
       
       const res = await callAppsScriptApi('initialize');
       
-      showCloudStatus(false, "雲端活動試算表建立成功", `
-        已成功在主辦方的 Google Drive 中建立一個全新的 Excel 試算表。<br>
-        <strong>試算表連結：</strong><a href="https://docs.google.com/spreadsheets/d/mock_beaux_arts_sheet_id/edit" target="_blank" style="color:var(--color-gold-bright); text-decoration:underline;">點擊打開雲端試算表</a><br>
-        請在此試算表的 <code>Roster</code> 工作表中填入參賽的 25 組名單，然後執行「拉取名單」即可同步。
-      `);
+      if (res.status === 'success') {
+        showCloudStatus(false, "雲端活動試算表初始化成功", `
+          已成功在您的 Google 試算表中建立 <code>Roster</code> 工作表並寫入 25 組預設名單！<br>
+          請在試算表中填入您的參賽名單，然後在控台執行「拉取名單」即可同步。
+        `);
+      } else {
+        showCloudStatus(false, "雲端初始化未成功 (使用模擬模式)", `
+          <strong>狀態：</strong>${res.message}<br><br>
+          <span style="color:var(--color-danger); font-weight:bold;">⚠️ 提醒：請確認您的 Google Apps Script 是否已正確部署為網頁應用程式 (Web App)，且「誰有權限存取」設定為「所有人 (Anyone)」。</span><br>
+          如未正確設定，瀏覽器會因為跨網域安全性 (CORS) 阻擋連線，此時系統只會運行在本地模擬模式，不會寫入您的 Google 試算表中。
+        `);
+      }
     }
 
     // 2. Fetch roster list
@@ -864,15 +871,19 @@
       if (res.status === 'success' && res.data) {
         // Update roster inside synchronizer
         syncManager.overwriteFullRoster(res.data);
+        showCloudStatus(false, "雲端名單拉取同步成功", `
+          已成功從 Google Sheet 讀取 25 組參賽名單並同步更新！<br>
+          共計載入 <strong>${roster.length} 組</strong> 表演隊伍。
+        `);
       } else {
         // Mock default roster updates if mock fallback triggers
         syncManager.overwriteFullRoster(DEFAULT_ROSTER);
+        showCloudStatus(false, "拉取名單未成功 (使用預設名單)", `
+          <strong>狀態：</strong>${res.message}<br><br>
+          <span style="color:var(--color-danger); font-weight:bold;">⚠️ 提醒：目前拉取失敗，已自動載入預設的 25 組範本名單。</span><br>
+          請確認您的 Apps Script 網頁應用程式 URL 是否正確，且已授權 Google 帳號存取該試算表。
+        `);
       }
-
-      showCloudStatus(false, "雲端名單拉取同步完成", `
-        已從 Google Sheet 成功讀取 25 組參賽名單並寫入 Firestore 中。<br>
-        系統名單已實時更新！共計載入 <strong>${roster.length} 組</strong> 表演隊伍。
-      `);
     }
 
     // 3. Save scores backup
@@ -881,10 +892,18 @@
       
       const res = await callAppsScriptApi('save_scoreboard', { roster: roster });
       
-      showCloudStatus(false, "數據跨週備份存檔成功", `
-        已成功將目前 Firestore 內的 25 組表演之所有累積得分率與分數明細，備份寫入 Google Sheet 中。<br>
-        已在該試算表中建立全新的 <code>Scoreboard_Backup</code> 工作表，確保賽事跨週覆核資料絕對不遺失！
-      `);
+      if (res.status === 'success') {
+        showCloudStatus(false, "數據跨週備份存檔成功", `
+          已成功將目前 25 組表演之所有累積得分率與分數明細，備份寫入您的 Google Sheet 中。<br>
+          <strong>訊息：</strong>${res.message}
+        `);
+      } else {
+        showCloudStatus(false, "雲端儲存未成功 (使用模擬存檔)", `
+          <strong>狀態：</strong>${res.message}<br><br>
+          <span style="color:var(--color-danger); font-weight:bold;">⚠️ 提醒：儲存失敗，無法寫入您的 Google 試算表。</span><br>
+          請確認您的試算表連結與 Apps Script 網頁應用程式部署是否正確，且無網路連線問題。
+        `);
+      }
     }
   </script>
 </body>
