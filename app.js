@@ -516,7 +516,8 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
 
   teamVotes.forEach(v => {
     // Map token details
-    const voter = Object.values(VOTER_TOKENS).find(t => t.id === v.id.split('_')[1] || t.id === v.judge_token);
+    const voterId = v.judge_token || v.id.replace(/^team_\d{2}_/, '');
+    const voter = Object.values(VOTER_TOKENS).find(t => t.id === voterId);
 
     // Safety check: skip if peer evaluation tries to vote for themselves (should be blocked by UI but double check here)
     if (voter && voter.type === 'peer' && voter.teamId === parseInt(targetTeamId)) {
@@ -527,7 +528,7 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
       (parseInt(v.score_communication) || 0) +
       (parseInt(v.score_originality) || 0);
     actualScoreSum += voteTotal;
-    submissionsMap[v.id.split('_')[1] || v.judge_token] = voteTotal;
+    submissionsMap[voterId] = voteTotal;
   });
 
   // Calculate percentage
