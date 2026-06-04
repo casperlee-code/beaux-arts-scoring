@@ -92,7 +92,7 @@
           <div class="voting-progress-box">
             <div class="voting-progress-header">
               <span class="text-gold"><i class="fa-solid fa-square-poll-vertical"></i> 現場評分收集進度</span>
-              <span id="voting-progress-text" class="text-gold">0 / 29 (0%)</span>
+              <span id="voting-progress-text" class="text-gold">0 / 30 (0%)</span>
             </div>
             <div class="voting-progress-bar-bg" style="margin-bottom: 12px;">
               <div class="voting-progress-bar-fill" id="voting-progress-bar"></div>
@@ -109,7 +109,7 @@
 
           <!-- Connecting Bulbs Grid -->
           <div class="voting-bulbs-grid" id="voting-bulbs-grid">
-            <!-- 29 virtual bulbs injected dynamically -->
+            <!-- 30 virtual bulbs injected dynamically -->
           </div>
 
         </div>
@@ -366,7 +366,7 @@
       // Calculate scores to fetch voter breakdown counts
       const scoreObj = calculateTeamScore(currentTeamId, roster, votes, globalState, connectedVoters);
       const votersCount = scoreObj.details ? Object.keys(scoreObj.details.submissions).length : 0;
-      const denominator = scoreObj.details ? scoreObj.details.voters_denominator : 28;
+      const denominator = scoreObj.details ? scoreObj.details.voters_denominator : 29;
 
       // Update text details
       const progressText = document.getElementById('voting-progress-text');
@@ -383,12 +383,12 @@
       const scoreBar = document.getElementById('voting-score-bar');
       if (scoreBar) scoreBar.style.width = `${scoreObj.scorePercent}%`;
 
-      // Render 29 voter connection bulbs
+      // Render 30 voter connection bulbs
       const bulbsGrid = document.getElementById('voting-bulbs-grid');
       if (bulbsGrid) {
         bulbsGrid.innerHTML = '';
         
-        // Sort tokens: 5 Judges first, then 24 teams
+        // Sort tokens: 5 Judges first, then 25 teams
         const sortedTokens = Object.entries(VOTER_TOKENS).sort((a, b) => {
           if (a[1].type === b[1].type) return a[1].id.localeCompare(b[1].id);
           return a[1].type === 'professional' ? -1 : 1;
