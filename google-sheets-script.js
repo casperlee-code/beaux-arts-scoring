@@ -158,7 +158,7 @@ function saveScoreboard(rosterList) {
   
   var headers = ["teamId", "id", "team_name", "architecture", "members", "total_percentage"];
   backupSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  backupSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#220, 20%, 9%").setFontColor("#d4af37");
+  backupSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#1e2022").setFontColor("#d4af37");
   
   var rows = [];
   rosterList.forEach(function(team) {
