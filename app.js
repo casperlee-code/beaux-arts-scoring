@@ -531,9 +531,15 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
     submissionsMap[voterId] = voteTotal;
   });
 
-  // Calculate percentage
-  let scorePercent = (actualScoreSum / maxPossibleScore) * 100;
-  if (scorePercent > 100) scorePercent = 100;
+  // Calculate percentage based on actual submitted votes (dynamic denominator)
+  const submittedVotesCount = Object.keys(submissionsMap).length;
+  const maxPossibleScore = submittedVotesCount * 30;
+
+  let scorePercent = 0.00;
+  if (submittedVotesCount > 0) {
+    scorePercent = (actualScoreSum / maxPossibleScore) * 100;
+    if (scorePercent > 100) scorePercent = 100;
+  }
 
   return {
     scorePercent: parseFloat(scorePercent.toFixed(2)),
@@ -542,8 +548,8 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
       team_name: team.team_name,
       architecture: team.architecture,
       actual_sum: actualScoreSum,
-      voters_denominator: effectiveVotersDenominator,
-      max_possible: maxPossibleScore,
+      voters_denominator: effectiveVotersDenominator, // For progress display (e.g. 28)
+      max_possible: maxPossibleScore, // For reference (submittedCount * 30)
       peer_lockout: peerLockoutDeduction,
       submissions: submissionsMap
     }
