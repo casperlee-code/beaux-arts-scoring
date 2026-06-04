@@ -615,22 +615,31 @@ body {
   background: rgba(255, 255, 255, 0.5);
 }
 
-.bulb.active-vote {
-  background: radial-gradient(circle at 35% 35%, #ffffff 0%, var(--color-gold-bright) 60%, var(--color-gold-deep) 100%);
-  border-color: var(--color-gold-deep);
-  box-shadow:
-    0 0 15px rgba(76, 101, 130, 0.35),
-    inset 0 2px 3px rgba(255, 255, 255, 0.6);
-  animation: bulbPulse 2s infinite alternate;
+.bulb.not-voted {
+  background: radial-gradient(circle at 35% 35%, #ffc5c5 0%, var(--color-danger) 70%);
+  border-color: var(--color-danger);
+  box-shadow: 0 0 10px rgba(217, 83, 79, 0.35);
 }
 
-.bulb.active-vote::after {
+.bulb.voted {
+  background: radial-gradient(circle at 35% 35%, #d1f7e0 0%, var(--color-success) 70%);
+  border-color: var(--color-success);
+  box-shadow: 0 0 15px rgba(66, 186, 120, 0.4);
+  animation: bulbPulseGreen 2s infinite alternate;
+}
+
+.bulb.voted::after {
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 0 4px #fff;
 }
 
+@keyframes bulbPulseGreen {
+  0% { box-shadow: 0 0 10px rgba(66, 186, 120, 0.3), inset 0 2px 3px rgba(255,255,255,0.4); }
+  100% { box-shadow: 0 0 22px rgba(66, 186, 120, 0.6), inset 0 2px 3px rgba(255,255,255,0.5); }
+}
+
 .bulb.offline {
-  opacity: 0.2;
+  opacity: 0.25;
 }
 
 .bulb-label {

@@ -23,7 +23,7 @@ const VOTER_TOKENS = {
   '9303': { id: 'judge_03', type: 'professional', name: '專業評審三 (J03)' },
   '9304': { id: 'judge_04', type: 'professional', name: '專業評審四 (J04)' },
   '9305': { id: 'judge_05', type: 'professional', name: '專業評審五 (J05)' },
-  
+
   // Student Groups (Peer Evaluators)
   '2401': { id: 'team_01', type: 'peer', name: '第01組同儕評審 (T01)', teamId: 1 },
   '2402': { id: 'team_02', type: 'peer', name: '第02組同儕評審 (T02)', teamId: 2 },
@@ -88,7 +88,7 @@ class DualModeSynchronizer {
     this.broadcastChannel = new BroadcastChannel('beaux_arts_sync');
     this.listeners = [];
     this.offlineCallbacks = [];
-    
+
     // Check if hardcoded Firebase config is active and valid
     if (ENABLE_FIREBASE && FIREBASE_CONFIG && FIREBASE_CONFIG.projectId && FIREBASE_CONFIG.projectId !== "YOUR_PROJECT_ID") {
       this.firebaseConfig = FIREBASE_CONFIG;
@@ -168,14 +168,14 @@ class DualModeSynchronizer {
         firebase.initializeApp(this.firebaseConfig);
       }
       this.db = firebase.firestore();
-      
+
       // Enable Firestore offline persistence
       this.db.enablePersistence().catch((err) => {
         console.warn("Firestore persistence failed:", err.code);
       });
 
       console.log("Firebase Firestore connected successfully.");
-      
+
       // Bind live database listeners to mirror Firestore to local UI
       this.bindFirebaseListeners();
     } catch (e) {
@@ -206,7 +206,7 @@ class DualModeSynchronizer {
         rosterList.push({ id: doc.id, ...doc.data() });
       });
       if (rosterList.length > 0) {
-        rosterList.sort((a,b) => a.teamId - b.teamId);
+        rosterList.sort((a, b) => a.teamId - b.teamId);
         localStorage.setItem('roster', JSON.stringify(rosterList));
         this.triggerUpdate('roster', rosterList);
       } else {
@@ -252,19 +252,19 @@ class DualModeSynchronizer {
   setSyncMode(firebaseMode, config = null) {
     this.useFirebase = firebaseMode;
     localStorage.setItem('use_firebase', firebaseMode);
-    
+
     if (config) {
       this.firebaseConfig = config;
       localStorage.setItem('firebase_config', JSON.stringify(config));
     }
-    
+
     if (firebaseMode && this.firebaseConfig) {
       this.initFirebase();
     } else {
       console.log("Switched to Simulated LocalSync Mode.");
       this.db = null;
       this.triggerOffline(false);
-      
+
       // Manually trigger local sync reload
       this.triggerUpdate('global_state', this.getGlobalState());
       this.triggerUpdate('roster', this.getRoster());
@@ -274,7 +274,7 @@ class DualModeSynchronizer {
   }
 
   // --- CRUD API Methods supporting both Firestore and LocalSync fallback ---
-  
+
   // Register observer updates
   subscribe(callback) {
     this.listeners.push(callback);
@@ -308,7 +308,7 @@ class DualModeSynchronizer {
   updateGlobalState(fields) {
     const currentState = this.getGlobalState();
     const updated = { ...currentState, ...fields };
-    
+
     if (this.useFirebase && this.db) {
       this.db.collection('global').doc('state').update(fields).catch(e => {
         console.error("Firebase write failed, using local backup", e);
@@ -329,7 +329,7 @@ class DualModeSynchronizer {
     const teamIndex = roster.findIndex(t => t.id === teamIdString);
     if (teamIndex !== -1) {
       roster[teamIndex].total_percentage = parseFloat(totalPercentage);
-      
+
       if (this.useFirebase && this.db) {
         this.db.collection('roster').doc(teamIdString).update({ total_percentage: parseFloat(totalPercentage) });
       } else {
@@ -343,7 +343,7 @@ class DualModeSynchronizer {
     const teamIndex = roster.findIndex(t => t.id === teamIdString);
     if (teamIndex !== -1) {
       roster[teamIndex].architecture = newArchitecture;
-      
+
       if (this.useFirebase && this.db) {
         this.db.collection('roster').doc(teamIdString).update({ architecture: newArchitecture });
       } else {
@@ -381,7 +381,7 @@ class DualModeSynchronizer {
   submitVote(voteDocId, voteData) {
     const votes = this.getVotes();
     const index = votes.findIndex(v => v.id === voteDocId);
-    
+
     const formattedVote = {
       id: voteDocId,
       ...voteData,
@@ -444,7 +444,7 @@ class DualModeSynchronizer {
   deleteSingleVote(voteDocId) {
     const votes = this.getVotes();
     const filtered = votes.filter(v => v.id !== voteDocId);
-    
+
     if (this.useFirebase && this.db) {
       this.db.collection('votes').doc(voteDocId).delete();
     } else {
@@ -463,7 +463,7 @@ class DualModeSynchronizer {
       connected: isConnected,
       last_active: Date.now()
     };
-    
+
     if (this.useFirebase && this.db) {
       this.db.collection('connected_voters').doc(voterId).set({
         connected: isConnected,
@@ -493,11 +493,11 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
   // Determine active judges base (denominator)
   // Base attendees = 24 peer teams + 5 pro judges = 29 maximum voters
   let maxVotersCount = globalState.active_judges_count || 29;
-  
+
   // Exclude absent groups: check all voters and reduce if flagged absent/unconnected in list
   // If the voter card connection is set to off or un-checked by the coordinator, deduct
   let absentCount = 0;
-  
+
   // Note: Only deduct if voter has never submitted a vote (if they submitted, they are active!)
   // Peer-lockout: performing team itself is locked out and cannot vote. If it has terminal role, deduct 1.
   const hasPerformingTeamVoter = Object.values(VOTER_TOKENS).some(v => v.type === 'peer' && v.teamId === parseInt(targetTeamId));
@@ -517,15 +517,15 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
   teamVotes.forEach(v => {
     // Map token details
     const voter = Object.values(VOTER_TOKENS).find(t => t.id === v.id.split('_')[1] || t.id === v.judge_token);
-    
+
     // Safety check: skip if peer evaluation tries to vote for themselves (should be blocked by UI but double check here)
     if (voter && voter.type === 'peer' && voter.teamId === parseInt(targetTeamId)) {
       return; // Skip self vote
     }
 
-    const voteTotal = (parseInt(v.score_coherency) || 0) + 
-                      (parseInt(v.score_communication) || 0) + 
-                      (parseInt(v.score_originality) || 0);
+    const voteTotal = (parseInt(v.score_coherency) || 0) +
+      (parseInt(v.score_communication) || 0) +
+      (parseInt(v.score_originality) || 0);
     actualScoreSum += voteTotal;
     submissionsMap[v.id.split('_')[1] || v.judge_token] = voteTotal;
   });
@@ -533,7 +533,7 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
   // Calculate percentage
   let scorePercent = (actualScoreSum / maxPossibleScore) * 100;
   if (scorePercent > 100) scorePercent = 100;
-  
+
   return {
     scorePercent: parseFloat(scorePercent.toFixed(2)),
     details: {
@@ -555,7 +555,7 @@ function resolvePodiumPlacements(roster) {
   const ranked = roster
     .filter(t => t.total_percentage > 0)
     .sort((a, b) => b.total_percentage - a.total_percentage);
-    
+
   if (ranked.length === 0) return { first: [], second: [], third: [] };
 
   const podium = {
@@ -580,7 +580,7 @@ function resolvePodiumPlacements(roster) {
     // 1st place group
     podium.first = scoreGroups[0].teams;
   }
-  
+
   if (scoreGroups.length > 1) {
     // 2nd place group: only visible if 1st place doesn't tie
     if (podium.first.length === 1) {

@@ -383,13 +383,14 @@
           if (isPeerExempt) {
             bulb.style.background = 'repeating-linear-gradient(45deg, #1e2022, #1e2022 4px, var(--color-gold-deep) 4px, var(--color-gold-deep) 8px)';
             bulb.title = "同儕互評迴避，免評分";
-          } else if (hasVoted) {
-            bulb.classList.add('active-vote');
-            bulb.title = "已提交評分";
           } else if (!isConnected) {
             bulb.classList.add('offline');
             bulb.title = "未連線 / 離線";
+          } else if (hasVoted) {
+            bulb.classList.add('voted');
+            bulb.title = "已提交評分";
           } else {
+            bulb.classList.add('not-voted');
             bulb.title = "連線中，尚未評分";
           }
 

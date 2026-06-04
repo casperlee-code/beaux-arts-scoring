@@ -546,6 +546,19 @@
           connText.innerHTML = '<span style="color:var(--color-gray-muted);"><i class="fa-solid fa-circle" style="font-size:0.55rem;"></i> 離線</span>';
         }
 
+        const voteText = document.createElement('div');
+        voteText.style.fontSize = '0.7rem';
+        voteText.style.marginTop = '4px';
+        voteText.style.fontWeight = 'bold';
+        
+        if (isPeerExempt) {
+          voteText.innerHTML = '<span style="color:var(--color-gold-deep);"><i class="fa-solid fa-ban"></i> 迴避</span>';
+        } else if (hasVoted) {
+          voteText.innerHTML = '<span style="color:var(--color-success);"><i class="fa-solid fa-circle-check"></i> 已評分</span>';
+        } else {
+          voteText.innerHTML = '<span style="color:var(--color-danger);"><i class="fa-solid fa-circle-minus"></i> 未評分</span>';
+        }
+
         // Lock override reset button for each voter
         const resetBtn = document.createElement('button');
         resetBtn.className = 'voter-action-reset';
@@ -555,6 +568,7 @@
         card.appendChild(title);
         card.appendChild(statusBadge);
         card.appendChild(connText);
+        card.appendChild(voteText);
         if (hasVoted && !isPeerExempt) {
           card.appendChild(resetBtn);
         }
