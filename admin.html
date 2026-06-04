@@ -148,7 +148,7 @@
                   <i class="fa-solid fa-gavel"></i> 強制結算本回合
                 </button>
                 <p style="font-size: 0.85rem; color: var(--color-gray-light); line-height: 1.6;">
-                  若有評審逾時未投票，點擊<strong>「強制結算」</strong>將直接截斷計分。未投票評審在該回合之分數計為 0 分，但<strong>依然佔用分母權重</strong>，以此懲罰超時者，並隨即將大螢幕推進至結算排行畫面。
+                  若有評審逾時未投票，點擊<strong>「強制結算」</strong>將直接截止本回合投票。未投票者在該回合將被<strong>忽略計入</strong>（分母僅計算已投票者），並隨即將大螢幕推進至結算排行畫面。
                 </p>
               </div>
             </div>
@@ -691,7 +691,7 @@
       // Submissions that are missing are left blank (score 0), but the denominator remains the full effective attendees!
       // This is already calculated by calculateTeamScore, as absent/missing votes simply don't add to the actual_sum numerator.
       
-      if (confirm(`確定強制結算本回合？\n目前已投票評審: ${Object.keys(d.submissions).length} / ${d.voters_denominator} 票。\n未投票者該回合得分將被視為 0 分計入，並佔用分母權重！`)) {
+      if (confirm(`確定強制結算本回合？\n目前已投票評審: ${Object.keys(d.submissions).length} / ${d.voters_denominator} 票。\n未投票者將被忽略，本輪得分率將以已投票之 ${Object.keys(d.submissions).length} 票計算（當前得分率：${scoreObj.scorePercent.toFixed(2)}%）！`)) {
         
         // Write score percentage to active team roster record
         syncManager.updateRosterTeamScore(`team_${String(currentTeamId).padStart(2, '0')}`, scoreObj.scorePercent);
