@@ -68,7 +68,7 @@ function initializeSheets() {
   rosterSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   rosterSheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#d4af37").setFontColor("#ffffff");
   
-  // 寫入 24 組預設範本資料
+  // 寫入 25 組預設範本資料
   var defaultRoster = [
     [1, "team_01", "帕德嫩神組", "帕德嫩神廟 (Parthenon)", "張安琪, 林小明", 0.00],
     [2, "team_02", "羅馬競技組", "羅馬競技場 (Colosseum)", "陳冠宇, 黃莉婷", 0.00],
@@ -93,14 +93,15 @@ function initializeSheets() {
     [21, "team_21", "東京聖瑪利亞組", "東京聖瑪利亞大教堂 (St. Mary's Cathedral)", "馬嘉豪, 徐瑞玲", 0.00],
     [22, "team_22", "羅浮宮金字塔組", "羅浮宮金字塔 (Louvre Pyramid)", "傅家駿, 葉子瑄", 0.00],
     [23, "team_23", "古根漢畢爾包組", "畢爾包古根漢美術館 (Guggenheim Bilbao)", "魏哲賢, 戴巧筑", 0.00],
-    [24, "team_24", "聖保羅組", "倫敦聖保羅大教堂 (St. Paul's Cathedral)", "施韋廷, 孫若晴", 0.00]
+    [24, "team_24", "聖保羅組", "倫敦聖保羅大教堂 (St. Paul's Cathedral)", "施韋廷, 孫若晴", 0.00],
+    [25, "team_25", "第25組", "未指定建築", "", 0.00]
   ];
   
   rosterSheet.getRange(2, 1, defaultRoster.length, defaultRoster[0].length).setValues(defaultRoster);
   
   return {
     status: 'success',
-    message: 'Google Sheet 初始化成功，已自動生成 Roster 分頁與 24 組範本數據。'
+    message: 'Google Sheet 初始化成功，已自動生成 Roster 分頁與 25 組範本數據。'
   };
 }
 
