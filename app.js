@@ -508,7 +508,7 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
   if (effectiveVotersDenominator <= 0) effectiveVotersDenominator = 1; // Safeguard
 
   // Max possible score denominator = effective voters * 30 points
-  const maxPossibleScore = effectiveVotersDenominator * 30;
+  let maxPossibleScore = effectiveVotersDenominator * 30;
 
   // Sum total actual scores
   let actualScoreSum = 0;
@@ -533,7 +533,7 @@ function calculateTeamScore(targetTeamId, roster, votesList, globalState, connec
 
   // Calculate percentage based on actual submitted votes (dynamic denominator)
   const submittedVotesCount = Object.keys(submissionsMap).length;
-  const maxPossibleScore = submittedVotesCount * 30;
+  maxPossibleScore = submittedVotesCount * 30;
 
   let scorePercent = 0.00;
   if (submittedVotesCount > 0) {
